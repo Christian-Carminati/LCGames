@@ -66,14 +66,15 @@ export async function POST(request: Request) {
         };
 
         allScores[gameSlug].push(newScore);
+        
+        // Sort and keep only top 10 BEFORE saving
+        allScores[gameSlug] = allScores[gameSlug]
+            .sort((a: any, b: any) => b.score - a.score)
+            .slice(0, 10);
+
         await saveScores(allScores);
 
-        // Return updated top scores
-        const topScores = allScores[gameSlug]
-             .sort((a: any, b: any) => b.score - a.score)
-             .slice(0, 10);
-
-        return NextResponse.json(topScores);
+        return NextResponse.json(allScores[gameSlug]);
 
     } catch (e) {
         console.error("Error saving score:", e);
