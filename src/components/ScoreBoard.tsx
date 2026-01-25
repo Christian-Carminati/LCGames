@@ -28,10 +28,16 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoar
         const res = await fetch(`/api/scores?gameSlug=${gameSlug}`);
         if (res.ok) {
           const data = await res.json();
-          setScores(data);
+          if (Array.isArray(data)) {
+            setScores(data);
+          } else {
+            console.error("Received invalid scores data:", data);
+            setScores([]);
+          }
         }
       } catch (e) {
         console.error("Failed to fetch scores", e);
+        setScores([]);
       } finally {
         setLoading(false);
       }
