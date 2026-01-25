@@ -10,52 +10,90 @@ interface Score {
 
 interface ScoreBoardProps {
   gameSlug: string;
+  capturedScore?: number;
+  isAutoTracked?: boolean;
 }
 
-export function ScoreBoard({ gameSlug }: ScoreBoardProps) {
+export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoardProps) {
   const [scores, setScores] = useState<Score[]>([]);
   const [name, setName] = useState('');
   const [scoreInput, setScoreInput] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch scores from API
   useEffect(() => {
-    const savedScores = localStorage.getItem(`lcgames-scores-${gameSlug}`);
-    if (savedScores) {
+    const fetchScores = async () => {
       try {
-        setScores(JSON.parse(savedScores));
+        const res = await fetch(`/api/scores?gameSlug=${gameSlug}`);
+        if (res.ok) {
+          const data = await res.json();
+          setScores(data);
+        }
       } catch (e) {
-        console.error("Failed to parse scores", e);
+        console.error("Failed to fetch scores", e);
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [gameSlug]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !scoreInput) return;
-
-    const newScore: Score = {
-      name: name.toUpperCase().slice(0, 10), // Limit name length
-      score: parseInt(scoreInput) || 0,
-      date: new Date().toLocaleDateString()
     };
 
-    const updatedScores = [...scores, newScore]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10); // Keep top 10
+    fetchScores();
+  }, [gameSlug]);
 
-    setScores(updatedScores);
-    localStorage.setItem(`lcgames-scores-${gameSlug}`, JSON.stringify(updatedScores));
-    
-    setName('');
-    setScoreInput('');
-    setShowForm(false);
+  // Update score input when form opens or captured score changes
+  useEffect(() => {
+      if (isAutoTracked && typeof capturedScore === 'number') {
+          setScoreInput(capturedScore.toString());
+      }
+  }, [capturedScore, isAutoTracked, showForm]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // For auto-tracked games, ensure we strictly use the captured score if available
+    const finalScore = isAutoTracked && typeof capturedScore === 'number' 
+        ? capturedScore 
+        : parseInt(scoreInput);
+
+    if (!name || isNaN(finalScore)) return;
+
+    try {
+        const res = await fetch('/api/scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                gameSlug,
+                name,
+                score: finalScore
+            })
+        });
+
+        if (res.ok) {
+            const updatedScores = await res.json();
+            setScores(updatedScores);
+            setName('');
+            if (!isAutoTracked) setScoreInput('');
+            setShowForm(false);
+        }
+    } catch (e) {
+        console.error("Failed to save score", e);
+    }
   };
 
   return (
     <div className="nes-container is-rounded is-dark with-title">
       <p className="title">HIGH SCORES</p>
       
-      {scores.length === 0 ? (
+      {/* Show Current/Captured Score Panel for Auto-Tracked Games */}
+      {isAutoTracked && (
+        <div className="mb-6 bg-gray-900 border-b-4 border-gray-700 pb-4 text-center">
+             <p className="text-xs text-gray-400 mb-2">CURRENT SCORE</p>
+             <p className="text-4xl text-green-400">{capturedScore ?? 0}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center text-xs py-4">LOADING...</div>
+      ) : scores.length === 0 ? (
         <div className="text-center text-sm py-4 text-gray-400">
           NO RECORDS YET. BE THE FIRST!
         </div>
@@ -91,7 +129,7 @@ export function ScoreBoard({ gameSlug }: ScoreBoardProps) {
                 className="nes-btn is-primary"
                 onClick={() => setShowForm(true)}
             >
-                ADD RECORD
+                {isAutoTracked ? 'SUBMIT SCORE' : 'ADD RECORD'}
             </button>
         ) : (
             <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4 bg-gray-900 p-4 border-2 border-white">
@@ -106,20 +144,25 @@ export function ScoreBoard({ gameSlug }: ScoreBoardProps) {
                         onChange={(e) => setName(e.target.value)}
                         maxLength={10}
                         required
+                        autoFocus
                     />
                 </div>
+                
                 <div className="nes-field">
                     <label htmlFor="score_field" className="text-sm">SCORE</label>
                     <input 
                         type="number" 
                         id="score_field" 
-                        className="nes-input is-dark" 
+                        className={`nes-input is-dark ${isAutoTracked ? 'is-disabled' : ''}`}
                         placeholder="000000"
-                        value={scoreInput}
-                        onChange={(e) => setScoreInput(e.target.value)} 
+                        value={isAutoTracked && capturedScore !== undefined ? capturedScore : scoreInput}
+                        onChange={(e) => !isAutoTracked && setScoreInput(e.target.value)} 
                         required
+                        disabled={isAutoTracked}
                     />
+                    {isAutoTracked && <p className="text-xs text-gray-500 mt-1">Score is automatically captured.</p>}
                 </div>
+
                 <div className="flex gap-2 justify-end">
                     <button 
                         type="button" 
