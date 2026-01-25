@@ -3,6 +3,7 @@ import gamesData from '@/lib/games.json';
 import { slugify } from '@/lib/utils';
 import { Emulator } from '@/components/Emulator';
 import Link from 'next/link';
+import { DonateButton } from '@/components/DonateButton';
 
 // Generate static params for all games to enable static export if needed
 export async function generateStaticParams() {
@@ -70,6 +71,14 @@ export default async function GameDetailPage({ params }: PageProps) {
                         </div>
                     )}
                  </div>
+            </div>
+        </div>
+
+        <div className="nes-container is-rounded is-dark with-title">
+            <p className="title">SUPPORT</p>
+            <div className="flex flex-col items-center gap-4 text-center">
+                 <p className="text-sm">Enjoying the archive? Help keep the server running!</p>
+                 <DonateButton label="DONATE 1 CREDIT" />
             </div>
         </div>
       </div>

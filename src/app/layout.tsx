@@ -10,6 +10,7 @@ const pressStart2P = Press_Start_2P({
 });
 
 import { InsertCoin } from "@/components/InsertCoin";
+import { DonateButton } from "@/components/DonateButton";
 
 export const metadata: Metadata = {
   title: "LC-Games C64 Archive",
@@ -31,6 +32,10 @@ export default function RootLayout({
         <main className="min-h-screen p-4">
             {children}
         </main>
+        <footer className="p-8 text-center opacity-80">
+            <p className="text-xs mb-4 text-c64-text">LC-GAMES ARCHIVE</p>
+            <DonateButton />
+        </footer>
       </body>
     </html>
   );

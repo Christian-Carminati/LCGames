@@ -29,11 +29,18 @@ A Next.js-based Commodore 64 game archive with strict retro aesthetics.
     - [x] E2E tests (Playwright) for critical user flows.
 - [x] **Planning**:
     - [x] Donation System Strategy (`donations_plan.md`).
+- [x] **Monetization (Donations)**:
+    - [x] Integrate Ko-fi "Donate Button".
+    - [x] Add Support section in Game Details.
+    - [x] Add Global Footer with Donate link.
+
+- [x] **Deployment**:
+    - [x] Create Deployment Guide (`deployment.md`).
 
 ## Roadmap / Next Steps
 1. **Beta Release**:
-    - Deploy to Vercel (Ready).
-    - Collect user feedback.
+    - [ ] Deploy to Vercel (Follow Guide).
+    - [ ] Collect user feedback.
 2. **Future Features**:
     - Save states (LocalStorage).
     - Joystick support (already partially handled by EJS).
