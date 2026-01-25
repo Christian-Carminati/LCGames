@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --color-c64-bg: #352879;
+  --color-c64-border: #6c5eb5;
+  --color-c64-text: #96cfdc;
+
+  --font-press-start: var(--font-press-start-2p);
+}
+
+:root {
+  --background: #352879;
+  --foreground: #96cfdc;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-press-start), monospace;
+  antialiased: none;
+  image-rendering: pixelated;
+}
+
+/* CRT Scanline Effect */
+/* High-performance CSS-only scanlines */
+.crt-scanline {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0) 50%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.2)
+  );
+  background-size: 100% 4px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Utility to ensure pixel perfect rendering for images */
+.rendering-pixelated {
+  image-rendering: pixelated;
+}
+
+/* Custom NES.css overrides */
+.nes-btn.is-primary {
+  background-color: #6c5eb5;
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.nes-btn.is-primary:hover {
+  background-color: #554a8f;
+}
+
+/* Scrollbar customization (optional, to fit theme) */
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #352879;
+}
+::-webkit-scrollbar-thumb {
+  background: #6c5eb5;
+  border: 1px solid #352879;
+}

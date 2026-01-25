@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <title>C64 Emulator</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        overflow: hidden;
+      }
+      #game {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <script>
+      // Get ROM path from URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const romPath = urlParams.get("rom");
+
+      if (romPath) {
+        window.EJS_player = "#game";
+        window.EJS_core = "c64";
+        window.EJS_gameUrl = romPath;
+        window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+        window.EJS_startOnLoaded = true;
+        window.EJS_biosUrl = "";
+
+        // Configure default controls (Mapping Arrow Keys + keys to gamepad)
+        // 0 maps to Player 1
+        /*
+        window.EJS_defaultControls = {
+            0: {
+                "up": [ "ArrowUp" ],
+                "down": [ "ArrowDown" ],
+                "left": [ "ArrowLeft" ],
+                "right": [ "ArrowRight" ],
+                "a": [ "z", "Z" ],         // Fire 1
+                "b": [ "x", "X" ],         // Fire 2 / Action
+                "start": [ "Enter" ],
+                "select": [ "Shift" ]
+            }
+        };
+        */
+
+        // Log for debugging
+        console.log("Booting C64 with ROM:", romPath);
+
+        const script = document.createElement("script");
+        script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+        script.async = true;
+        document.body.appendChild(script);
+      } else {
+        document.body.innerHTML =
+          '<div style="color:white; text-align:center; padding-top:20px; font-family:monospace;">NO ROM LOADED</div>';
+      }
+    </script>
+  </body>
+</html>
