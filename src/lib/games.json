@@ -5,7 +5,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzIyNDIzNzU2LnBuZw==/315x250%23c/gH8igG.png",
         "platform": "C64",
         "genre": "Platformer",
-        "description": "The hardworking miners of Mount Leone have been locked in the cave system through sudden volcanic activities. Our hero Roderick Hero now starts for the search of the missing persons with his special equipment (backpack helicopter, integrated helmet laser and dynamite). After a successful rescue, the player reaches the next level."
+        "description": "The hardworking miners of Mount Leone have been locked in the cave system through sudden volcanic activities. Our hero Roderick Hero now starts for the search of the missing persons with his special equipment (backpack helicopter, integrated helmet laser and dynamite). After a successful rescue, the player reaches the next level.",
+        "scoreAddress": "0x0800"
     },
     {
         "title": "Space Invaders One Button (C64)",
@@ -85,7 +86,7 @@
         "imageUrl": "https://img.itch.zone/aW1nLzEwODY4NjgxLnBuZw==/315x250%23c/h1JzAT.png",
         "description": "Gameplay",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "PC"
     },
     {
         "title": "Scout The Stray (C64)",
@@ -101,7 +102,7 @@
         "imageUrl": "https://img.itch.zone/aW1nLzk3ODk4OTkucG5n/315x250%23c/wOKM4e.png",
         "description": "This game is a tribute to Bagman, an arcade game released by Valadon Automation in 1982. It is also the sequel to Bagman Comes Back.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "PC"
     },
     {
         "title": "Mike Mech (C64)",
@@ -149,7 +150,7 @@
         "imageUrl": "https://img.itch.zone/aW1nLzY3MDkwMzcucG5n/315x250%23c/hJMKw7.png",
         "description": "Lady Pac is a homage to Ms. Pac-Man, an arcade game published by Midway in 1982.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "PC"
     },
     {
         "title": "Lady Pac (C64)",

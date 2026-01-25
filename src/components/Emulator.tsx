@@ -1,12 +1,25 @@
 'use client';
 
-
+import { useEffect } from 'react';
 
 interface EmulatorProps {
   romPath: string | null;
+  scoreAddress?: string;
+  onScoreUpdate?: (score: number) => void;
 }
 
-export function Emulator({ romPath }: EmulatorProps) {
+export function Emulator({ romPath, scoreAddress, onScoreUpdate }: EmulatorProps) {
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SCORE_UPDATE' && typeof event.data.score === 'number') {
+        onScoreUpdate?.(event.data.score);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onScoreUpdate]);
+
   if (!romPath) {
      return (
         <div className="aspect-[4/3] bg-c64-bg border-8 border-c64-border flex items-center justify-center text-c64-text font-c64">
@@ -19,7 +32,7 @@ export function Emulator({ romPath }: EmulatorProps) {
     <div className="w-full max-w-4xl mx-auto">
       <div className="aspect-[4/3] w-full border-8 border-c64-border bg-black">
         <iframe 
-            src={`/emulator.html?rom=${encodeURIComponent(romPath)}`}
+            src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreAddress ? `&scoreAddress=${scoreAddress}` : ''}`}
             className="w-full h-full border-0"
             allow="autoplay; fullscreen; gamepad"
             title="C64 Emulator"

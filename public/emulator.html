@@ -55,6 +55,54 @@
         script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
         script.async = true;
         document.body.appendChild(script);
+
+        // Score Extraction Logic
+        const scoreAddressHex = urlParams.get("scoreAddress");
+        if (scoreAddressHex) {
+          const address = parseInt(scoreAddressHex, 16);
+          console.log(
+            "Monitoring score at address:",
+            "0x" + address.toString(16),
+          );
+
+          setInterval(() => {
+            // Check if EmulatorJS core is loaded and memory is accessible
+            // EmulatorJS typically exposes the Emscripten module as 'Module' or 'EJS_emulator.Module'
+            // The C64 RAM is usually within the HEAPU8.
+            // We need to find the correct offset. For C64, 'Module._get_ram_base()' might be available or
+            // we assume a standard offset.
+            // Let's try to access window.Module
+
+            if (window.Module && window.Module.HEAPU8) {
+              try {
+                // In many Emscripten builds, the memory is flat.
+                // However, C64 emulators often valid RAM at a specific pointer.
+                // For VICE.js / common web ports, it might be tricky.
+                // We will try a safe read if possible.
+                // Often accessing 0x0800 directly works if the HEAP starts at 0 or aligns with C64 mem.
+                // BUT, usually there is a pointer like `_vic20_ram_start` or similar.
+                // For now we assume a direct mapping or that we can find it.
+
+                // NOTE: This is a best-effort attempt. The actual memory layout depends on the specific core.
+                // We will look for a global 'I' or 'Module'
+
+                // Let's assume the user knows the offset or we treat address as absolute in HEAPU8 for now.
+                // If standard VICE, RAM might be at `Module.HEAPU8[base + offset]`
+
+                // Simple 1-byte read for now
+                const val = window.Module.HEAPU8[address];
+                if (val !== undefined) {
+                  window.parent.postMessage(
+                    { type: "SCORE_UPDATE", score: val },
+                    "*",
+                  );
+                }
+              } catch (e) {
+                // console.error("Error reading memory", e);
+              }
+            }
+          }, 1000);
+        }
       } else {
         document.body.innerHTML =
           '<div style="color:white; text-align:center; padding-top:20px; font-family:monospace;">NO ROM LOADED</div>';

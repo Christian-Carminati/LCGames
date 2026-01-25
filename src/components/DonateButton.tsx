@@ -1,4 +1,7 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
+import { DonationModal } from './DonationModal';
 
 interface DonateButtonProps {
   username?: string;
@@ -11,14 +14,24 @@ export function DonateButton({
     label = "DONATE COFFEE", 
     className = "" 
 }: DonateButtonProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
-    <a 
-      href={`https://ko-fi.com/${username}`} 
-      target="_blank" 
-      rel="noopener noreferrer" 
-      className={`nes-btn is-warning ${className}`}
-    >
-      <i className="nes-icon coin is-small"></i> {label}
-    </a>
+    <>
+        <button 
+          type="button"
+          className={`nes-btn is-warning ${className}`}
+          onClick={() => setIsModalOpen(true)}
+        >
+          <i className="nes-icon coin is-small"></i> {label}
+        </button>
+
+        <DonationModal 
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)} 
+            username={username}
+        />
+    </>
   );
 }
+

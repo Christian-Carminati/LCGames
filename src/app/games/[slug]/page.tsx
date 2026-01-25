@@ -4,6 +4,7 @@ import { slugify } from '@/lib/utils';
 import { Emulator } from '@/components/Emulator';
 import Link from 'next/link';
 import { DonateButton } from '@/components/DonateButton';
+import { ScoreBoard } from '@/components/ScoreBoard';
 
 // Generate static params for all games to enable static export if needed
 export async function generateStaticParams() {
@@ -12,13 +13,23 @@ export async function generateStaticParams() {
   }));
 }
 
+interface Game {
+    title: string;
+    url: string;
+    imageUrl: string;
+    platform?: string;
+    genre?: string;
+    description?: string;
+    scoreAddress?: string;
+}
+
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
 export default async function GameDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const game = gamesData.find((g) => slugify(g.title) === slug);
+  const game = gamesData.find((g) => slugify(g.title) === slug) as Game | undefined;
 
   if (!game) {
     notFound();
@@ -36,7 +47,7 @@ export default async function GameDetailPage({ params }: PageProps) {
       <div className="flex flex-col gap-6">
         <div className="nes-container is-rounded is-dark with-title">
             <p className="title">{game.title}</p>
-            <Emulator romPath={romPath} />
+            <Emulator romPath={romPath} scoreAddress={game.scoreAddress} />
         </div>
 
         <div className="nes-container is-rounded is-dark with-title">
@@ -47,8 +58,8 @@ export default async function GameDetailPage({ params }: PageProps) {
                  </div>
                  <div className="w-full md:w-2/3 space-y-4 text-sm">
                     <p>STATUS: ARCHIVED</p>
-                    <p>PLATFORM: {(game as any).platform || 'COMMODORE 64'}</p>
-                    <p>GENRE: {(game as any).genre || 'RETRO'}</p>
+                    <p>PLATFORM: {game.platform || 'COMMODORE 64'}</p>
+                    <p>GENRE: {game.genre || 'RETRO'}</p>
                     <p>ORIGINAL SOURCE: <a href={game.url} className="text-c64-text underline" target="_blank">{game.url}</a></p>
                     
                     {romPath && (
@@ -59,9 +70,9 @@ export default async function GameDetailPage({ params }: PageProps) {
                         </div>
                     )}
 
-                    {(game as any).description && (
+                    {game.description && (
                         <div className="mt-4 p-4 bg-c64-bg border-4 border-c64-border text-xs leading-relaxed">
-                            {(game as any).description}
+                            {game.description}
                         </div>
                     )}
                     
@@ -73,6 +84,8 @@ export default async function GameDetailPage({ params }: PageProps) {
                  </div>
             </div>
         </div>
+
+        <ScoreBoard gameSlug={slug} />
 
         <div className="nes-container is-rounded is-dark with-title">
             <p className="title">SUPPORT</p>
