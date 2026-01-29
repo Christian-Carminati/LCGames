@@ -56,6 +56,83 @@
         script.async = true;
         document.body.appendChild(script);
 
+        // --- CUSTOM EXTRACTION LOGIC ---
+
+        // Listen for requests from the parent window
+        window.addEventListener("message", (event) => {
+          if (event.data === "EXTRACT_SAVE") {
+            extractSaveFile();
+          }
+        });
+
+        function extractSaveFile() {
+          // Access Emscripten FS
+          // EJS usually exposes Module on window.Module or window.EJS_emulator.Module
+          // We need to find the ROM file. It's usually loaded into the FS.
+
+          let fs = null;
+          if (window.Module && window.Module.FS) {
+            fs = window.Module.FS;
+          } else if (
+            window.EJS_emulator &&
+            window.EJS_emulator.Module &&
+            window.EJS_emulator.Module.FS
+          ) {
+            fs = window.EJS_emulator.Module.FS;
+          }
+
+          if (!fs) {
+            console.warn("Emulator FS not ready yet.");
+            return;
+          }
+
+          try {
+            // List files to find the .d64
+            // Usually it's in the root or /work
+            // The loaded ROM is often copied to a file.
+            // We'll try to find the file that matches the ROM name or just scan.
+
+            // Note: EmulatorJS might rename the file.
+            // Let's look for any .d64 file.
+
+            const files = fs.readdir("/");
+            console.log("FS Files:", files);
+
+            let targetFile = null;
+            for (const f of files) {
+              if (f.endsWith(".d64")) {
+                targetFile = f;
+                break;
+              }
+            }
+
+            if (targetFile) {
+              const content = fs.readFile("/" + targetFile);
+              // Send back to parent
+              // We need to send as a Blob or ArrayBuffer
+              const blob = new Blob([content], {
+                type: "application/octet-stream",
+              });
+
+              // Convert to ArrayBuffer to send via postMessage safely (clonable)
+              // Actually Blob is clonable too.
+              window.parent.postMessage(
+                {
+                  type: "SAVE_EXTRACTED",
+                  file: blob,
+                  fileName: targetFile,
+                },
+                "*",
+              );
+              console.log("Sent extracted save:", targetFile);
+            } else {
+              console.warn("No .d64 file found in emulator FS");
+            }
+          } catch (e) {
+            console.error("Error extracting save:", e);
+          }
+        }
+
         // Score Extraction Logic
         const scoreAddressHex = urlParams.get("scoreAddress");
         if (scoreAddressHex) {
