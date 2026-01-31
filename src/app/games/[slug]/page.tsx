@@ -34,8 +34,14 @@ export default async function GameDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Determine ROM path - hardcoded for demo purposes as we only have this one
-  const romPath = slug.includes('hero-is-back') ? '/roms/HeroIsBack.d64' : null;
+  // Map slugs to ROM filenames
+  // In a real app, this would likely be in the database
+  const ROM_MAP: Record<string, string> = {
+    'hero-is-back-c64-c128': '/roms/HeroIsBack.d64',
+    'dig-dug-revival-c64': '/roms/DigDugRevival.d64',
+  };
+
+  const romPath = ROM_MAP[slug] || null;
 
   return (
     <div className="container mx-auto pb-16 px-4">
