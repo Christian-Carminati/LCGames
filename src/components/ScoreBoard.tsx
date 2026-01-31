@@ -130,13 +130,15 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoar
 
       <div className="mt-6 flex justify-center">
         {!showForm ? (
-            <button 
-                type="button" 
-                className="nes-btn is-primary"
-                onClick={() => setShowForm(true)}
-            >
-                {isAutoTracked ? 'SUBMIT SCORE' : 'ADD RECORD'}
-            </button>
+            isAutoTracked && (
+                <button 
+                    type="button" 
+                    className="nes-btn is-primary"
+                    onClick={() => setShowForm(true)}
+                >
+                    SUBMIT SCORE
+                </button>
+            )
         ) : (
             <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4 bg-gray-900 p-4 border-2 border-white">
                 <div className="nes-field">
