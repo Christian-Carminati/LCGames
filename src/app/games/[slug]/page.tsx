@@ -20,6 +20,7 @@ interface Game {
     genre?: string;
     description?: string;
     scoreAddress?: string;
+    romPath?: string;
 }
 
 interface PageProps {
@@ -34,14 +35,7 @@ export default async function GameDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Map slugs to ROM filenames
-  // In a real app, this would likely be in the database
-  const ROM_MAP: Record<string, string> = {
-    'hero-is-back-c64-c128': '/roms/HeroIsBack.d64',
-    'dig-dug-revival-c64': '/roms/DigDugRevival.d64',
-  };
-
-  const romPath = ROM_MAP[slug] || null;
+  const romPath = game.romPath || null;
 
   return (
     <div className="container mx-auto pb-16 px-4">

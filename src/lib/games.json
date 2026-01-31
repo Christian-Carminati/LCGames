@@ -6,7 +6,8 @@
         "platform": "C64",
         "genre": "Platformer",
         "description": "The hardworking miners of Mount Leone have been locked in the cave system through sudden volcanic activities. Our hero Roderick Hero now starts for the search of the missing persons with his special equipment (backpack helicopter, integrated helmet laser and dynamite). After a successful rescue, the player reaches the next level.",
-        "scoreAddress": "0x0800"
+        "scoreAddress": "0x0800",
+        "romPath": "/roms/HeroIsBack.d64"
     },
     {
         "title": "Space Invaders One Button (C64)",
@@ -70,7 +71,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzE0NTYzODQ5LnBuZw==/315x250%23c/BOc2V2.png",
         "description": "This game is a homage to Dig Dug, an arcade game developed by Namco in 1982.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/DigDugRevival.d64"
     },
     {
         "title": "The Last Defender (C64)",
