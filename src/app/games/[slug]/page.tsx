@@ -19,7 +19,11 @@ interface Game {
     platform?: string;
     genre?: string;
     description?: string;
-    scoreAddress?: string;
+    scoreConfig?: {
+        address: string;
+        type: string;
+        length: number;
+    };
     romPath?: string;
 }
 
@@ -49,7 +53,7 @@ export default async function GameDetailPage({ params }: PageProps) {
         gameSlug={slug}
         gameTitle={game.title}
         romPath={romPath}
-        scoreAddress={game.scoreAddress}
+        scoreConfig={game.scoreConfig}
         imageUrl={game.imageUrl}
         platform={game.platform}
         genre={game.genre}

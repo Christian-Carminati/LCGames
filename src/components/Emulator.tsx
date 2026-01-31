@@ -2,11 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 
 interface EmulatorProps {
   romPath: string | null;
-  scoreAddress?: string;
+  scoreConfig?: {
+      address: string;
+      type: string;
+      length: number;
+  };
   onScoreUpdate?: (score: number) => void;
 }
 
-export function Emulator({ romPath, scoreAddress, onScoreUpdate }: EmulatorProps) {
+export function Emulator({ romPath, scoreConfig, onScoreUpdate }: EmulatorProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [syncStatus, setSyncStatus] = useState<string>('');
 
@@ -76,7 +80,7 @@ export function Emulator({ romPath, scoreAddress, onScoreUpdate }: EmulatorProps
       <div className="aspect-[4/3] w-full border-8 border-c64-border bg-black">
         <iframe 
             ref={iframeRef}
-            src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreAddress ? `&scoreAddress=${scoreAddress}` : ''}`}
+            src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}`}
             className="w-full h-full border-0"
             allow="autoplay; fullscreen; gamepad"
             title="C64 Emulator"

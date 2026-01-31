@@ -8,7 +8,11 @@ interface GameInterfaceProps {
     gameSlug: string;
     gameTitle: string;
     romPath: string | null;
-    scoreAddress?: string;
+    scoreConfig?: {
+        address: string;
+        type: string;
+        length: number;
+    };
     imageUrl: string;
     platform?: string;
     genre?: string;
@@ -21,7 +25,7 @@ export function GameInterface({
     gameSlug, 
     gameTitle, 
     romPath, 
-    scoreAddress,
+    scoreConfig,
     imageUrl,
     platform,
     genre,
@@ -45,7 +49,7 @@ export function GameInterface({
                         <p className="title">{gameTitle}</p>
                         <Emulator 
                             romPath={romPath} 
-                            scoreAddress={scoreAddress} 
+                            scoreConfig={scoreConfig} 
                             onScoreUpdate={handleScoreUpdate}
                         />
                     </div>
@@ -116,7 +120,7 @@ export function GameInterface({
             <ScoreBoard 
                 gameSlug={gameSlug} 
                 capturedScore={currentScore}
-                isAutoTracked={!!scoreAddress}
+                isAutoTracked={!!scoreConfig}
             />
         </div>
     );

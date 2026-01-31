@@ -6,7 +6,11 @@
         "platform": "C64",
         "genre": "Platformer",
         "description": "The hardworking miners of Mount Leone have been locked in the cave system through sudden volcanic activities. Our hero Roderick Hero now starts for the search of the missing persons with his special equipment (backpack helicopter, integrated helmet laser and dynamite). After a successful rescue, the player reaches the next level.",
-        "scoreAddress": "0x0800",
+        "scoreConfig": {
+            "address": "0x0800",
+            "type": "byte",
+            "length": 1
+        },
         "romPath": "/roms/HeroIsBack.d64"
     },
     {

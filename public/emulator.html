@@ -134,51 +134,89 @@
         }
 
         // Score Extraction Logic
-        const scoreAddressHex = urlParams.get("scoreAddress");
-        if (scoreAddressHex) {
-          const address = parseInt(scoreAddressHex, 16);
-          console.log(
-            "Monitoring score at address:",
-            "0x" + address.toString(16),
-          );
+        // Score Extraction Logic
+        const scoreConfigJson = urlParams.get("scoreConfig");
 
-          setInterval(() => {
-            // Check if EmulatorJS core is loaded and memory is accessible
-            // EmulatorJS typically exposes the Emscripten module as 'Module' or 'EJS_emulator.Module'
-            // The C64 RAM is usually within the HEAPU8.
-            // We need to find the correct offset. For C64, 'Module._get_ram_base()' might be available or
-            // we assume a standard offset.
-            // Let's try to access window.Module
+        if (scoreConfigJson) {
+          try {
+            const config = JSON.parse(decodeURIComponent(scoreConfigJson));
+            const scoreAddress = parseInt(config.address, 16);
+            const type = config.type || "byte"; // byte, bcd, int
+            const length = config.length || 1;
 
-            if (window.Module && window.Module.HEAPU8) {
+            console.log("Monitoring score with config:", config);
+
+            setInterval(() => {
               try {
-                // In many Emscripten builds, the memory is flat.
-                // However, C64 emulators often valid RAM at a specific pointer.
-                // For VICE.js / common web ports, it might be tricky.
-                // We will try a safe read if possible.
-                // Often accessing 0x0800 directly works if the HEAP starts at 0 or aligns with C64 mem.
-                // BUT, usually there is a pointer like `_vic20_ram_start` or similar.
-                // For now we assume a direct mapping or that we can find it.
+                // Locate HEAPU8
+                let heap = null;
+                if (window.Module && window.Module.HEAPU8) {
+                  heap = window.Module.HEAPU8;
+                } else if (
+                  window.EJS_emulator &&
+                  window.EJS_emulator.Module &&
+                  window.EJS_emulator.Module.HEAPU8
+                ) {
+                  heap = window.EJS_emulator.Module.HEAPU8;
+                }
 
-                // NOTE: This is a best-effort attempt. The actual memory layout depends on the specific core.
-                // We will look for a global 'I' or 'Module'
+                if (heap) {
+                  let score = 0;
+                  if (type === "byte") {
+                    score = heap[scoreAddress];
+                  } else if (type === "bcd") {
+                    // Handle BCD (assuming Length bytes, little endian usually or simplified)
+                    // Simple 1-byte BCD to start: 0x41 -> 41
+                    // For multi-byte, we need to know layout.
+                    // Let's assume standard C64 BCD: usually a sequence of bytes.
+                    // Example 3 bytes: 12 34 56 -> 123456
+                    let strVal = "";
+                    for (let i = 0; i < length; i++) {
+                      let val = heap[scoreAddress + i]; // Big endian address order? Or Little?
+                      // Often scores are stored low-byte to high-byte or high-to-low.
+                      // Let's assume screen code / BCD style where we just read hex vals.
 
-                // Let's assume the user knows the offset or we treat address as absolute in HEAPU8 for now.
-                // If standard VICE, RAM might be at `Module.HEAPU8[base + offset]`
+                      // If little endian: value at address is lowest digits.
+                      // Let's try to interpret just raw hex string for now or just single byte.
+                      // If type is BCD, we treat 0x12 as 12.
+                      let bcd = val.toString(16);
+                      if (bcd.length < 2) bcd = "0" + bcd;
+                      strVal += bcd;
+                    }
+                    // This is a naive BCD parser, likely needs refinement for specific games (endianness)
+                    // For Hero Is Back (1 byte), 0x41 -> 41.
+                    score = parseInt(strVal);
+                  } else if (type === "int") {
+                    // Read integer
+                    let val = 0;
+                    for (let i = 0; i < length; i++) {
+                      val += heap[scoreAddress + i] << (i * 8); // Little endian
+                    }
+                    score = val;
+                  }
 
-                // Simple 1-byte read for now
-                const val = window.Module.HEAPU8[address];
-                if (val !== undefined) {
-                  window.parent.postMessage(
-                    { type: "SCORE_UPDATE", score: val },
-                    "*",
-                  );
+                  if (!isNaN(score)) {
+                    window.parent.postMessage(
+                      { type: "SCORE_UPDATE", score: score },
+                      "*",
+                    );
+                  }
                 }
               } catch (e) {
-                // console.error("Error reading memory", e);
+                // Quiet fail
               }
-            }
-          }, 1000);
+            }, 1000);
+          } catch (e) {
+            console.error("Invalid score config", e);
+          }
+        } else {
+          // FALLBACK for backward compat if needed or just log
+          const scoreAddressHex = urlParams.get("scoreAddress");
+          if (scoreAddressHex) {
+            // ... old logic ...
+            // Removed for brevity/refactor
+            console.warn("Legacy scoreAddress param ignored. Use scoreConfig.");
+          }
         }
       } else {
         document.body.innerHTML =
