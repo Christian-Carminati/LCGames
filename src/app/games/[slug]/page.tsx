@@ -38,9 +38,11 @@ export default async function GameDetailPage({ params }: PageProps) {
   const romPath = slug.includes('hero-is-back') ? '/roms/HeroIsBack.d64' : null;
 
   return (
-    <div className="container mx-auto pb-10">
-      <div className="mb-4">
-        <Link href="/games" className="nes-btn">{"<"} BACK TO LIST</Link>
+    <div className="container mx-auto pb-16 px-4">
+      <div className="mb-6 flex items-center">
+        <Link href="/games" className="nes-btn">
+             <span className="text-xs">BACK To ARCADE</span>
+        </Link>
       </div>
 
       <GameInterface 
@@ -53,13 +55,19 @@ export default async function GameDetailPage({ params }: PageProps) {
         genre={game.genre}
         originalUrl={game.url}
         description={game.description}
-      />
+        />
 
-      <div className="nes-container is-rounded is-dark with-title mt-6">
-          <p className="title">SUPPORT</p>
-          <div className="flex flex-col items-center gap-4 text-center">
-                <p className="text-sm">Enjoying the archive? Help keep the server running!</p>
-                <DonateButton label="DONATE 1 CREDIT" />
+      <div className="mt-12 border-t-4 border-white/10 pt-8">
+          <div className="nes-container is-rounded is-dark">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="text-center md:text-left">
+                      <p className="title mb-2">SUPPORT THE ARCHIVE</p>
+                      <p className="text-xs text-gray-400">Help keep the C64 servers running!</p>
+                  </div>
+                  <div className="shrink-0">
+                    <DonateButton label="INSERT COIN (DONATE)" />
+                  </div>
+              </div>
           </div>
       </div>
     </div>
