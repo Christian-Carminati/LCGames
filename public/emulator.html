@@ -19,219 +19,154 @@
   <body>
     <div id="game"></div>
     <script>
-      // Get ROM path from URL params
+      /**
+       * C64 Memory Monitor & Score Extractor
+       * 
+       * This script runs inside the emulator iframe. It periodically reads the WebAssembly memory (HEAP)
+       * to extract the current game score based on the configuration passed in the URL.
+       */
+
+      // --- Configuration ---
       const urlParams = new URLSearchParams(window.location.search);
       const romPath = urlParams.get("rom");
+      const scoreConfigJson = urlParams.get("scoreConfig");
 
+      // --- Initialization ---
       if (romPath) {
+        initEmulator(romPath);
+        if (scoreConfigJson) {
+           initMemoryMonitor(scoreConfigJson);
+        }
+      } else {
+        showError("NO ROM LOADED");
+      }
+
+      function initEmulator(rom) {
+        console.log("Booting C64 with ROM:", rom);
         window.EJS_player = "#game";
         window.EJS_core = "c64";
-        window.EJS_gameUrl = romPath;
+        window.EJS_gameUrl = rom;
         window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
         window.EJS_startOnLoaded = true;
         window.EJS_biosUrl = "";
-
-        // Configure default controls (Mapping Arrow Keys + keys to gamepad)
-        // 0 maps to Player 1
-        /*
-        window.EJS_defaultControls = {
-            0: {
-                "up": [ "ArrowUp" ],
-                "down": [ "ArrowDown" ],
-                "left": [ "ArrowLeft" ],
-                "right": [ "ArrowRight" ],
-                "a": [ "z", "Z" ],         // Fire 1
-                "b": [ "x", "X" ],         // Fire 2 / Action
-                "start": [ "Enter" ],
-                "select": [ "Shift" ]
-            }
-        };
-        */
-
-        // Log for debugging
-        console.log("Booting C64 with ROM:", romPath);
-
+        
+        // Load the EmulatorJS Loader
         const script = document.createElement("script");
         script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
         script.async = true;
         document.body.appendChild(script);
+      }
 
-        // --- CUSTOM EXTRACTION LOGIC ---
+      function showError(msg) {
+        document.body.innerHTML = `<div style="color:white; text-align:center; padding-top:20px; font-family:monospace;">${msg}</div>`;
+      }
 
-        // Listen for requests from the parent window
-        window.addEventListener("message", (event) => {
-          if (event.data === "EXTRACT_SAVE") {
-            extractSaveFile();
-          }
-        });
+      // --- Memory Monitoring Logic ---
 
-        function extractSaveFile() {
-          // Access Emscripten FS
-          // EJS usually exposes Module on window.Module or window.EJS_emulator.Module
-          // We need to find the ROM file. It's usually loaded into the FS.
-
-          let fs = null;
-          if (window.Module && window.Module.FS) {
-            fs = window.Module.FS;
-          } else if (
-            window.EJS_emulator &&
-            window.EJS_emulator.Module &&
-            window.EJS_emulator.Module.FS
-          ) {
-            fs = window.EJS_emulator.Module.FS;
-          }
-
-          if (!fs) {
-            console.warn("Emulator FS not ready yet.");
-            return;
-          }
-
-          try {
-            // List files to find the .d64
-            // Usually it's in the root or /work
-            // The loaded ROM is often copied to a file.
-            // We'll try to find the file that matches the ROM name or just scan.
-
-            // Note: EmulatorJS might rename the file.
-            // Let's look for any .d64 file.
-
-            const files = fs.readdir("/");
-            console.log("FS Files:", files);
-
-            let targetFile = null;
-            for (const f of files) {
-              if (f.endsWith(".d64")) {
-                targetFile = f;
-                break;
-              }
-            }
-
-            if (targetFile) {
-              const content = fs.readFile("/" + targetFile);
-              // Send back to parent
-              // We need to send as a Blob or ArrayBuffer
-              const blob = new Blob([content], {
-                type: "application/octet-stream",
-              });
-
-              // Convert to ArrayBuffer to send via postMessage safely (clonable)
-              // Actually Blob is clonable too.
-              window.parent.postMessage(
-                {
-                  type: "SAVE_EXTRACTED",
-                  file: blob,
-                  fileName: targetFile,
-                },
-                "*",
-              );
-              console.log("Sent extracted save:", targetFile);
-            } else {
-              console.warn("No .d64 file found in emulator FS");
-            }
-          } catch (e) {
-            console.error("Error extracting save:", e);
-          }
-        }
-
-        // Score Extraction Logic
-        // Score Extraction Logic
-        const scoreConfigJson = urlParams.get("scoreConfig");
-
-        if (scoreConfigJson) {
-          try {
-            const config = JSON.parse(decodeURIComponent(scoreConfigJson));
-            const scoreAddress = parseInt(config.address, 16);
-            const type = config.type || "byte"; // byte, bcd, int
-            const length = config.length || 1;
-
-            console.log("Monitoring score with config:", config);
-
+      function initMemoryMonitor(configStr) {
+        try {
+            const config = JSON.parse(decodeURIComponent(configStr));
+            console.log("Initializing Memory Monitor:", config);
+            
+            // Start polling loop
             setInterval(() => {
-              try {
-                // Locate HEAPU8
-                let heap = null;
-                if (window.Module && window.Module.HEAPU8) {
-                  heap = window.Module.HEAPU8;
-                } else if (
-                  window.EJS_emulator &&
-                  window.EJS_emulator.Module &&
-                  window.EJS_emulator.Module.HEAPU8
-                ) {
-                  heap = window.EJS_emulator.Module.HEAPU8;
+                const score = extractScore(config);
+                if (score !== null) {
+                    sendScoreToParent(score);
                 }
-
-                if (heap) {
-                  let score = 0;
-                  if (type === "byte") {
-                    score = heap[scoreAddress];
-                  } else if (type === "bcd") {
-                    // Handle BCD (assuming Length bytes, little endian usually or simplified)
-                    // Simple 1-byte BCD to start: 0x41 -> 41
-                    // For multi-byte, we need to know layout.
-                    // Let's assume standard C64 BCD: usually a sequence of bytes.
-                    // Example 3 bytes: 12 34 56 -> 123456
-                    let strVal = "";
-                    for (let i = 0; i < length; i++) {
-                      let val = heap[scoreAddress + i]; // Big endian address order? Or Little?
-                      // Often scores are stored low-byte to high-byte or high-to-low.
-                      // Let's assume screen code / BCD style where we just read hex vals.
-
-                      // If little endian: value at address is lowest digits.
-                      // Let's try to interpret just raw hex string for now or just single byte.
-                      // If type is BCD, we treat 0x12 as 12.
-                      let bcd = val.toString(16);
-                      if (bcd.length < 2) bcd = "0" + bcd;
-                      strVal += bcd;
-                    }
-                    // This is a naive BCD parser, likely needs refinement for specific games (endianness)
-                    // For Hero Is Back (1 byte), 0x41 -> 41.
-                    score = parseInt(strVal);
-                  } else if (type === "int") {
-                    // Read integer
-                    let val = 0;
-                    for (let i = 0; i < length; i++) {
-                      val += heap[scoreAddress + i] << (i * 8); // Little endian
-                    }
-                    score = val;
-                  } else if (type === 'string') {
-                    // ASCII/PETSCII string
-                    let strVal = "";
-                    for (let i = 0; i < length; i++) {
-                        let val = heap[scoreAddress + i];
-                        // 0x30 = '0'
-                        strVal += String.fromCharCode(val);
-                    }
-                    // Filter non-digits just in case
-                    strVal = strVal.replace(/[^0-9]/g, '');
-                    score = parseInt(strVal, 10);
-                  }
-
-                  if (!isNaN(score)) {
-                    window.parent.postMessage(
-                      { type: "SCORE_UPDATE", score: score },
-                      "*",
-                    );
-                  }
-                }
-              } catch (e) {
-                // Quiet fail
-              }
             }, 1000);
-          } catch (e) {
-            console.error("Invalid score config", e);
-          }
-        } else {
-          // FALLBACK for backward compat if needed or just log
-          const scoreAddressHex = urlParams.get("scoreAddress");
-          if (scoreAddressHex) {
-            // ... old logic ...
-            // Removed for brevity/refactor
-            console.warn("Legacy scoreAddress param ignored. Use scoreConfig.");
-          }
+
+        } catch (e) {
+            console.error("Failed to parse score config:", e);
         }
-      } else {
-        document.body.innerHTML =
-          '<div style="color:white; text-align:center; padding-top:20px; font-family:monospace;">NO ROM LOADED</div>';
+      }
+
+      /**
+       * Locates the correct Emscripten Heap (C64 RAM)
+       */
+      function findHeap() {
+        // Option 1: Direct Module access (common in some builds)
+        if (window.Module && window.Module.HEAPU8) {
+            return window.Module.HEAPU8;
+        }
+        // Option 2: EJS wrapper access (standard for EmulatorJS)
+        if (window.EJS_emulator && window.EJS_emulator.Module && window.EJS_emulator.Module.HEAPU8) {
+            return window.EJS_emulator.Module.HEAPU8;
+        }
+        return null;
+      }
+
+      /**
+       * Reads the score from memory based on config
+       */
+      function extractScore(config) {
+        const heap = findHeap();
+        if (!heap) return null;
+
+        const address = parseInt(config.address, 16);
+        const length = config.length || 1;
+        const type = config.type || 'byte';
+
+        // Read raw bytes
+        const bytes = [];
+        for (let i = 0; i < length; i++) {
+            // Validate memory bounds
+            if (address + i >= heap.length) return null;
+            bytes.push(heap[address + i]);
+        }
+
+        return parseBytesToScore(bytes, type);
+      }
+
+      /**
+       * Decodes bytes into a number based on the format type
+       */
+      function parseBytesToScore(bytes, type) {
+        if (type === 'byte') {
+            // Single byte value (0-255)
+            return bytes[0];
+        } 
+        
+        if (type === 'int') {
+            // Little-endian integer
+            let val = 0;
+            for (let i = 0; i < bytes.length; i++) {
+                val += bytes[i] << (i * 8); 
+            }
+            return val;
+        } 
+        
+        if (type === 'bcd') {
+            // Binary Coded Decimal (e.g., 0x12 = 12)
+            // Assuming Big-Endian for multi-byte BCD sequences (standard display order)
+            // e.g. [0x12, 0x34] -> 1234
+            let strVal = "";
+            for (const b of bytes) {
+                let hex = b.toString(16);
+                if (hex.length < 2) hex = "0" + hex;
+                strVal += hex;
+            }
+            return parseInt(strVal, 10);
+        }
+
+        if (type === 'string') {
+             // ASCII/PETSCII String (e.g. chars "0", "0", "1", "0" -> 10)
+             let strVal = "";
+             for (const b of bytes) {
+                strVal += String.fromCharCode(b);
+             }
+             // Sanitize: keep only digits
+             strVal = strVal.replace(/[^0-9]/g, '');
+             return parseInt(strVal, 10);
+        }
+
+        return 0;
+      }
+
+      function sendScoreToParent(score) {
+        if (!isNaN(score)) {
+            window.parent.postMessage({ type: "SCORE_UPDATE", score: score }, "*");
+        }
       }
     </script>
   </body>
