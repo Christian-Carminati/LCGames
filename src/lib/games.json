@@ -76,6 +76,11 @@
         "description": "This game is a homage to Dig Dug, an arcade game developed by Namco in 1982.",
         "genre": "Action",
         "platform": "C64",
+        "scoreConfig": {
+            "address": "0xE3A3",
+            "type": "string",
+            "length": 7
+        },
         "romPath": "/roms/DigDugRevival.d64"
     },
     {

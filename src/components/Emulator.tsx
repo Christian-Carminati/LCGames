@@ -58,12 +58,10 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate }: EmulatorProps)
 
     window.addEventListener('message', handleMessage);
     
-    // Auto-poll every 60 seconds
-    const intervalId = setInterval(triggerExtraction, 60000);
-
+    window.addEventListener('message', handleMessage);
+    
     return () => {
         window.removeEventListener('message', handleMessage);
-        clearInterval(intervalId);
     };
   }, [onScoreUpdate]);
 
@@ -95,12 +93,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate }: EmulatorProps)
         </div>
         
         <div className="flex items-center gap-4">
-            <button 
-                onClick={triggerExtraction}
-                className="nes-btn is-primary text-xs"
-            >
-                Sync High Scores Now
-            </button>
+            {/* Sync button removed - using RAM based submission in ScoreBoard */}
             {syncStatus && <span className="text-xs text-green-400 animate-pulse">{syncStatus}</span>}
         </div>
       </div>

@@ -193,6 +193,17 @@
                       val += heap[scoreAddress + i] << (i * 8); // Little endian
                     }
                     score = val;
+                  } else if (type === 'string') {
+                    // ASCII/PETSCII string
+                    let strVal = "";
+                    for (let i = 0; i < length; i++) {
+                        let val = heap[scoreAddress + i];
+                        // 0x30 = '0'
+                        strVal += String.fromCharCode(val);
+                    }
+                    // Filter non-digits just in case
+                    strVal = strVal.replace(/[^0-9]/g, '');
+                    score = parseInt(strVal, 10);
                   }
 
                   if (!isNaN(score)) {
