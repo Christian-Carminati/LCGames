@@ -1,10 +1,11 @@
 
+
 import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { auth } from '@/auth';
 
 // Helper to get the path to the scores file
-// In production (Vercel), this won't persist writes, but works for demo/local.
 const SCORES_FILE = path.join(process.cwd(), 'src/data/scores.json');
 
 async function getScores() {
@@ -12,7 +13,6 @@ async function getScores() {
         const data = await fs.readFile(SCORES_FILE, 'utf-8');
         return JSON.parse(data);
     } catch (error) {
-        // If file doesn't exist or error, return empty object
         return {};
     }
 }
@@ -37,20 +37,25 @@ export async function GET(request: Request) {
     const allScores = await getScores();
     const gameScores = allScores[gameSlug] || [];
     
-    // Sort by score descending and take top 10
+    // Sort by score descending and take top 20 for API return
     const topScores = gameScores
         .sort((a: any, b: any) => b.score - a.score)
-        .slice(0, 10);
+        .slice(0, 20);
 
     return NextResponse.json(topScores);
 }
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
-        const { gameSlug, name, score } = body;
+        const session = await auth();
+        if (!session || !session.user) {
+             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        if (!gameSlug || !name || typeof score !== 'number') {
+        const body = await request.json();
+        const { gameSlug, score } = body;
+
+        if (!gameSlug || typeof score !== 'number') {
             return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
         }
 
@@ -59,18 +64,41 @@ export async function POST(request: Request) {
             allScores[gameSlug] = [];
         }
 
-        const newScore = {
-            name: name.toUpperCase().slice(0, 10),
-            score,
-            date: new Date().toLocaleDateString()
-        };
+        const userEmail = session.user.email;
+        const userName = session.user.name || "Anonymous";
+        const userImage = session.user.image;
 
-        allScores[gameSlug].push(newScore);
+        // Check if user already has a score
+        const existingScoreIndex = allScores[gameSlug].findIndex((s: any) => s.userId === userEmail);
+
+        if (existingScoreIndex !== -1) {
+            // Update if new score is higher
+            if (score > allScores[gameSlug][existingScoreIndex].score) {
+                allScores[gameSlug][existingScoreIndex].score = score;
+                allScores[gameSlug][existingScoreIndex].date = new Date().toLocaleDateString();
+                allScores[gameSlug][existingScoreIndex].name = userName; // Update name in case it changed
+                if (userImage) allScores[gameSlug][existingScoreIndex].userImage = userImage;
+            } else {
+                 // Do nothing if score is not higher (or maybe just update date?)
+                 // Keeping it strictly "High Score" means we don't change it.
+            }
+        } else {
+             // New entry
+            allScores[gameSlug].push({
+                userId: userEmail,
+                name: userName,
+                score,
+                date: new Date().toLocaleDateString(),
+                userImage
+            });
+        }
         
-        // Sort and keep only top 10 BEFORE saving
-        allScores[gameSlug] = allScores[gameSlug]
-            .sort((a: any, b: any) => b.score - a.score)
-            .slice(0, 10);
+        // Sort
+        allScores[gameSlug] = allScores[gameSlug].sort((a: any, b: any) => b.score - a.score);
+
+        // Save All (or limit to a reasonable number to prevent infinite growth, e.g. 100? or just keep all)
+        // User asked "backend keeps 20". I will slice to 20 to strictly follow the request.
+        allScores[gameSlug] = allScores[gameSlug].slice(0, 20);
 
         await saveScores(allScores);
 

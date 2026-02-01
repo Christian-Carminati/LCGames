@@ -11,6 +11,8 @@ const pressStart2P = Press_Start_2P({
 
 import { InsertCoin } from "@/components/InsertCoin";
 import { DonateButton } from "@/components/DonateButton";
+import { Providers } from "./providers";
+import LoginButton from "@/components/LoginButton";
 
 export const metadata: Metadata = {
   title: "LC-Games C64 Archive",
@@ -27,15 +29,20 @@ export default function RootLayout({
       <body
         className={`${pressStart2P.variable} min-h-screen`}
       >
-        <InsertCoin />
-        <div className="crt-scanline" />
-        <main className="min-h-screen p-4">
-            {children}
-        </main>
-        <footer className="p-8 text-center opacity-80">
-            <p className="text-xs mb-4 text-c64-text">LC-GAMES ARCHIVE</p>
-            <DonateButton />
-        </footer>
+        <Providers>
+            <InsertCoin />
+            <div className="crt-scanline" />
+            <header className="flex justify-end p-4 absolute top-0 right-0 z-20">
+                <LoginButton />
+            </header>
+            <main className="min-h-screen p-4 pt-16">
+                {children}
+            </main>
+            <footer className="p-8 text-center opacity-80">
+                <p className="text-xs mb-4 text-c64-text">LC-GAMES ARCHIVE</p>
+                <DonateButton />
+            </footer>
+        </Providers>
       </body>
     </html>
   );

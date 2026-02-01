@@ -19,6 +19,7 @@ interface GameInterfaceProps {
     originalUrl: string;
     description?: string;
     donateLabel?: string;
+    isAdmin?: boolean;
 }
 
 export function GameInterface({ 
@@ -30,7 +31,8 @@ export function GameInterface({
     platform,
     genre,
     originalUrl,
-    description
+    description,
+    isAdmin
 }: GameInterfaceProps) {
     const [currentScore, setCurrentScore] = useState<number>(0);
 
@@ -51,6 +53,7 @@ export function GameInterface({
                             romPath={romPath} 
                             scoreConfig={scoreConfig} 
                             onScoreUpdate={handleScoreUpdate}
+                            isAdmin={isAdmin}
                         />
                     </div>
 

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
 import gamesData from '@/lib/games.json';
 import { slugify } from '@/lib/utils';
 import Link from 'next/link';
@@ -23,6 +24,8 @@ interface Game {
         address: string;
         type: string;
         length: number;
+        baseOffset?: string;
+        endianness?: string;
     };
     romPath?: string;
 }
@@ -33,6 +36,8 @@ interface PageProps {
 
 export default async function GameDetailPage({ params }: PageProps) {
   const { slug } = await params;
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get('admin_token')?.value === 'authenticated';
   const game = gamesData.find((g) => slugify(g.title) === slug) as Game | undefined;
 
   if (!game) {
@@ -59,6 +64,7 @@ export default async function GameDetailPage({ params }: PageProps) {
         genre={game.genre}
         originalUrl={game.url}
         description={game.description}
+        isAdmin={isAdmin}
         />
 
       <div className="mt-12 border-t-4 border-white/10 pt-8">

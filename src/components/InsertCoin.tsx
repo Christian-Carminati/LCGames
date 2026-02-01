@@ -2,10 +2,17 @@
 
 import { useState } from 'react';
 import { useRetroSound } from '@/hooks/useRetroSound';
+import { usePathname } from 'next/navigation';
 
 export function InsertCoin() {
   const [hasInsertedCoin, setHasInsertedCoin] = useState(false);
   const { playCoin, resumeAudio } = useRetroSound();
+  const pathname = usePathname();
+
+  // Only show on homepage
+  if (pathname !== '/') {
+      return null;
+  }
 
   const handleCoin = async () => {
     await resumeAudio();

@@ -6,13 +6,69 @@ interface EmulatorProps {
       address: string;
       type: string;
       length: number;
+      baseOffset?: string;
+      endianness?: string;
   };
   onScoreUpdate?: (score: number) => void;
+  isAdmin?: boolean;
 }
 
-export function Emulator({ romPath, scoreConfig, onScoreUpdate }: EmulatorProps) {
+// Helper to parse search pattern
+const parseSearchPattern = (input: string): { bytes: number[]; mode: string } => {
+  const trimmed = input.trim();
+  
+  // 1. Decimal Input (e.g. "250") -> Convert to BCD
+  if (/^\d+$/.test(trimmed)) {
+      let digits = trimmed;
+      if (digits.length % 2 !== 0) digits = '0' + digits; // Pad to even length
+      
+      // Ensure at least 6 digits (3 bytes) as it's the standard for our games
+      while (digits.length < 6) digits = '0' + digits;
+
+      const bytes: number[] = [];
+      for (let i = 0; i < digits.length; i += 2) {
+         bytes.push(parseInt(digits.substring(i, i+2), 16));
+      }
+      return { bytes, mode: `(Decimal ${trimmed} -> BCD)` };
+  } 
+  
+  // 2. Hex Input (e.g. "02 50" or "02,50")
+  const bytes = trimmed.split(/[\s,]+/)
+      .map(x => parseInt(x, 16))
+      .filter(n => !isNaN(n));
+      
+  return { bytes, mode: '(Raw Hex)' };
+};
+
+export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin }: EmulatorProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [syncStatus, setSyncStatus] = useState<string>('');
+  const [debugPattern, setDebugPattern] = useState('');
+  const [debugResult, setDebugResult] = useState('');
+
+  const handleHunt = () => {
+    const win = iframeRef.current?.contentWindow as any;
+    if (win && win.hunt) {
+       const { bytes, mode } = parseSearchPattern(debugPattern);
+       const reversed = [...bytes].reverse(); // Little Endian
+       
+       const res = win.hunt(reversed);
+       
+        if (Array.isArray(res)) {
+            const hexPattern = reversed.map(b => b.toString(16).padStart(2, '0')).join(' ');
+            const foundList = res.map(addr => `0x${addr.toString(16)} (Dec: ${addr})`).join('\n');
+            
+            setDebugResult(
+                `Hunted for: ${hexPattern} (Little Endian) ${mode}\n` +
+                `Found ${res.length} matches:\n${foundList}`
+            );
+        } else {
+            setDebugResult(String(res));
+        }
+    } else {
+       setDebugResult("Hunt function not found or iframe not ready (Click inside game first?)");
+    }
+  };
 
   const triggerExtraction = () => {
     if (iframeRef.current?.contentWindow) {
@@ -78,7 +134,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate }: EmulatorProps)
       <div className="aspect-[4/3] w-full border-8 border-c64-border bg-black">
         <iframe 
             ref={iframeRef}
-            src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}`}
+            src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}${isAdmin ? '&debug=1' : ''}`}
             className="w-full h-full border-0"
             allow="autoplay; fullscreen; gamepad"
             title="C64 Emulator"
@@ -87,7 +143,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate }: EmulatorProps)
       
       <div className="mt-4 flex flex-col items-center gap-2">
         <div className="text-xs text-gray-400 text-center">
-            Powered by EmulatorJS. Controls: Arrow Keys + Z (Fire) + Enter (Start).
+            Powered by EmulatorJS. Controls: Arrow Keys + X (Fire) + Enter (Start).
             <br/>
             Click inside the screen to enable audio/input.
         </div>
@@ -96,6 +152,33 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate }: EmulatorProps)
             {/* Sync button removed - using RAM based submission in ScoreBoard */}
             {syncStatus && <span className="text-xs text-green-400 animate-pulse">{syncStatus}</span>}
         </div>
+
+        {/* DEBUGGING TOOL - Only for Admin */}
+        {isAdmin && (
+            <div className="w-full max-w-md bg-gray-900/80 p-3 rounded mt-4 border border-gray-700">
+                <h3 className="text-xs uppercase text-gray-500 mb-2 font-bold">Memory Hunter</h3>
+                <div className="flex gap-2">
+                    <input 
+                        type="text"
+                        value={debugPattern}
+                        onChange={(e) => setDebugPattern(e.target.value)}
+                        placeholder="e.g. 250"
+                        className="flex-1 bg-black border border-gray-700 text-green-400 font-mono text-sm px-2 py-1 rounded focus:outline-none focus:border-green-500"
+                    />
+                    <button 
+                        onClick={handleHunt}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs uppercase font-bold px-3 py-1 rounded"
+                    >
+                        Hunt
+                    </button>
+                </div>
+                {debugResult && (
+                    <div className="mt-2 p-2 bg-black border border-gray-800 rounded font-mono text-xs text-yellow-500 whitespace-pre-wrap">
+                        {debugResult}
+                    </div>
+                )}
+            </div>
+        )}
       </div>
     </div>
   );

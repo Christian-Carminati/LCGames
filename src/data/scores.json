@@ -1,14 +1,24 @@
 {
   "hero-is-back-c64c128": [
     {
+      "userId": "03chriscar@gmail.com",
+      "name": "Christian Carminati",
+      "score": 10795,
+      "date": "2/1/2026",
+      "userImage": "https://lh3.googleusercontent.com/a/ACg8ocKce4TYhvGRb7rR6hyOHTBVjxSTcuuG3a_d32LIuzPhUDhbxg=s96-c"
+    },
+    {
       "name": "AA",
       "score": 41,
       "date": "1/31/2026"
-    },
+    }
+  ],
+  "dig-dug-revival": [],
+  "dig-dug-revival-c64": [
     {
-      "name": "AAA",
-      "score": 0,
-      "date": "1/25/2026"
+      "name": "ROBOT",
+      "score": 9999,
+      "date": "1/31/2026"
     }
   ]
 }

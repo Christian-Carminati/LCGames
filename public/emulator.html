@@ -21,7 +21,7 @@
     <script>
       /**
        * C64 Memory Monitor & Score Extractor
-       * 
+       *
        * This script runs inside the emulator iframe. It periodically reads the WebAssembly memory (HEAP)
        * to extract the current game score based on the configuration passed in the URL.
        */
@@ -35,7 +35,7 @@
       if (romPath) {
         initEmulator(romPath);
         if (scoreConfigJson) {
-           initMemoryMonitor(scoreConfigJson);
+          initMemoryMonitor(scoreConfigJson);
         }
       } else {
         showError("NO ROM LOADED");
@@ -49,7 +49,7 @@
         window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
         window.EJS_startOnLoaded = true;
         window.EJS_biosUrl = "";
-        
+
         // Load the EmulatorJS Loader
         const script = document.createElement("script");
         script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
@@ -65,19 +65,40 @@
 
       function initMemoryMonitor(configStr) {
         try {
-            const config = JSON.parse(decodeURIComponent(configStr));
-            console.log("Initializing Memory Monitor:", config);
-            
-            // Start polling loop
-            setInterval(() => {
-                const score = extractScore(config);
-                if (score !== null) {
-                    sendScoreToParent(score);
-                }
-            }, 1000);
+          const config = JSON.parse(decodeURIComponent(configStr));
+          console.log("Initializing Memory Monitor:", config);
 
+          // Probe for RAM offset
+          setTimeout(() => {
+            const mod = window.EJS_emulator?.Module || window.Module;
+            if (mod) {
+              const candidates = Object.keys(mod).filter(
+                (k) =>
+                  (k.startsWith("_") || k.length > 2) &&
+                  (k.toLowerCase().includes("ram") ||
+                    k.toLowerCase().includes("mem") ||
+                    k.toLowerCase().includes("ptr") ||
+                    k.toLowerCase().includes("start")),
+              );
+              console.log("[DEBUG_PROBE] Module Candidates:", candidates);
+              // Also log values if they are numbers
+              const values = {};
+              candidates.forEach((k) => {
+                if (typeof mod[k] === "number") values[k] = mod[k];
+              });
+              console.log("[DEBUG_PROBE] Candidate Values:", values);
+            }
+          }, 5000);
+
+          // Start polling loop
+          setInterval(() => {
+            const score = extractScore(config);
+            if (score !== null) {
+              sendScoreToParent(score);
+            }
+          }, 1000);
         } catch (e) {
-            console.error("Failed to parse score config:", e);
+          console.error("Failed to parse score config:", e);
         }
       }
 
@@ -87,23 +108,83 @@
       function findHeap() {
         // Option 1: Direct Module access (common in some builds)
         if (window.Module && window.Module.HEAPU8) {
-            return window.Module.HEAPU8;
+          return window.Module.HEAPU8;
         }
         // Option 2: EJS wrapper access (standard for EmulatorJS)
-        if (window.EJS_emulator && window.EJS_emulator.Module && window.EJS_emulator.Module.HEAPU8) {
-            return window.EJS_emulator.Module.HEAPU8;
+        if (
+          window.EJS_emulator &&
+          window.EJS_emulator.Module &&
+          window.EJS_emulator.Module.HEAPU8
+        ) {
+          return window.EJS_emulator.Module.HEAPU8;
         }
         return null;
       }
 
       /**
+       * Global Helper to find a byte sequence in Memory
+       * Usage in Console: hunt([0x44, 0x70]) or hunt("44 70")
+       */
+      window.hunt = function (pattern) {
+        const heap = findHeap();
+        if (!heap) return "No HEAP found";
+
+        // Normalize pattern
+        let bytes = [];
+        if (typeof pattern === "string") {
+          bytes = pattern.split(/[\s,]+/).map((h) => parseInt(h, 16));
+        } else if (Array.isArray(pattern)) {
+          bytes = pattern;
+        }
+
+        console.log(
+          "Hunting for:",
+          bytes.map((b) => b.toString(16).padStart(2, "0")).join(" "),
+        );
+
+        const results = [];
+        for (let i = 0; i < heap.length - bytes.length; i++) {
+          let match = true;
+          for (let j = 0; j < bytes.length; j++) {
+            if (heap[i + j] !== bytes[j]) {
+              match = false;
+              break;
+            }
+          }
+          if (match) {
+            results.push(i);
+            // Limit results
+            if (results.length > 50) break;
+          }
+        }
+
+        console.log(`Found ${results.length} matches:`);
+        results.forEach((addr) => {
+          const hex = "0x" + addr.toString(16);
+          console.log(`${hex} (Decimal: ${addr})`);
+        });
+        return results;
+      };
+
+      /**
        * Reads the score from memory based on config
        */
+      // throttle logging
+      let lastLog = 0;
+
+      const debugMode = urlParams.get("debug") === "1" || urlParams.get("debug") === "true";
+
       function extractScore(config) {
         const heap = findHeap();
         if (!heap) return null;
 
-        const address = parseInt(config.address, 16);
+        let address = parseInt(config.address, 16);
+        
+        // Add optional base offset (useful if C64 RAM starts at a specific location in Heap)
+        if (config.baseOffset) {
+            address += parseInt(config.baseOffset, 16);
+        }
+
         const length = config.length || 1;
         const type = config.type || 'byte';
 
@@ -115,6 +196,17 @@
             bytes.push(heap[address + i]);
         }
 
+        const now = Date.now();
+        if (debugMode && now - lastLog > 5000) {
+            console.log(`[DEBUG_SCORE] Addr: ${config.address} (Base: ${config.baseOffset || 0} -> Real: ${address}), Bytes: [${bytes.map(b => '0x' + b.toString(16).padStart(2,'0')).join(', ')}], Type: ${type}`);
+            lastLog = now;
+        }
+
+        // Handle Little Endian for BCD (reverse to Big Endian for parsing)
+        if (type === 'bcd' && config.endianness === 'little') {
+            bytes.reverse();
+        }
+
         return parseBytesToScore(bytes, type);
       }
 
@@ -122,42 +214,42 @@
        * Decodes bytes into a number based on the format type
        */
       function parseBytesToScore(bytes, type) {
-        if (type === 'byte') {
-            // Single byte value (0-255)
-            return bytes[0];
-        } 
-        
-        if (type === 'int') {
-            // Little-endian integer
-            let val = 0;
-            for (let i = 0; i < bytes.length; i++) {
-                val += bytes[i] << (i * 8); 
-            }
-            return val;
-        } 
-        
-        if (type === 'bcd') {
-            // Binary Coded Decimal (e.g., 0x12 = 12)
-            // Assuming Big-Endian for multi-byte BCD sequences (standard display order)
-            // e.g. [0x12, 0x34] -> 1234
-            let strVal = "";
-            for (const b of bytes) {
-                let hex = b.toString(16);
-                if (hex.length < 2) hex = "0" + hex;
-                strVal += hex;
-            }
-            return parseInt(strVal, 10);
+        if (type === "byte") {
+          // Single byte value (0-255)
+          return bytes[0];
         }
 
-        if (type === 'string') {
-             // ASCII/PETSCII String (e.g. chars "0", "0", "1", "0" -> 10)
-             let strVal = "";
-             for (const b of bytes) {
-                strVal += String.fromCharCode(b);
-             }
-             // Sanitize: keep only digits
-             strVal = strVal.replace(/[^0-9]/g, '');
-             return parseInt(strVal, 10);
+        if (type === "int") {
+          // Little-endian integer
+          let val = 0;
+          for (let i = 0; i < bytes.length; i++) {
+            val += bytes[i] << (i * 8);
+          }
+          return val;
+        }
+
+        if (type === "bcd") {
+          // Binary Coded Decimal (e.g., 0x12 = 12)
+          // Assuming Big-Endian for multi-byte BCD sequences (standard display order)
+          // e.g. [0x12, 0x34] -> 1234
+          let strVal = "";
+          for (const b of bytes) {
+            let hex = b.toString(16);
+            if (hex.length < 2) hex = "0" + hex;
+            strVal += hex;
+          }
+          return parseInt(strVal, 10);
+        }
+
+        if (type === "string") {
+          // ASCII/PETSCII String (e.g. chars "0", "0", "1", "0" -> 10)
+          let strVal = "";
+          for (const b of bytes) {
+            strVal += String.fromCharCode(b);
+          }
+          // Sanitize: keep only digits
+          strVal = strVal.replace(/[^0-9]/g, "");
+          return parseInt(strVal, 10);
         }
 
         return 0;
@@ -165,7 +257,10 @@
 
       function sendScoreToParent(score) {
         if (!isNaN(score)) {
-            window.parent.postMessage({ type: "SCORE_UPDATE", score: score }, "*");
+          window.parent.postMessage(
+            { type: "SCORE_UPDATE", score: score },
+            "*",
+          );
         }
       }
     </script>
