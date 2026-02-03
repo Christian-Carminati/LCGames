@@ -67,12 +67,19 @@ export async function DELETE(
   try {
     const { slug } = params;
     
-    await prisma.game.delete({
-       where: { slug } // will throw if not found? No, delete throws if not found
-    });
+    // Use transaction to ensure cascade delete behavior if not set in DB
+    await prisma.$transaction([
+        prisma.score.deleteMany({
+            where: { gameSlug: slug }
+        }),
+        prisma.game.delete({
+            where: { slug }
+        })
+    ]);
     
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Delete error:", error);
     return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
   }
 }

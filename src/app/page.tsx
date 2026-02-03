@@ -1,5 +1,11 @@
 import Link from 'next/link';
-export default function Home() {
+import { cookies } from 'next/headers';
+
+export default async function Home() {
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get('admin_token');
+  const isAdmin = !!adminToken;
+
   return (
     <div className="flex flex-col items-center justify-center h-[80vh] gap-8">
       <div className="text-center">
@@ -17,6 +23,9 @@ export default function Home() {
         <p>LC-Games Archive loaded successfully.</p>
         <div className="mt-4 flex gap-4 justify-center">
            <Link href="/games" className="nes-btn is-primary">START GAME</Link>
+           {isAdmin && (
+             <Link href="/admin" className="nes-btn is-error">ADMIN PANEL</Link>
+           )}
            <button type="button" className="nes-btn">OPTIONS</button>
         </div>
       </div>
