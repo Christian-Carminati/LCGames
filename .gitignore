@@ -42,3 +42,5 @@ next-env.d.ts
 
 # antigravity rules
 .agent/rules
+
+/src/generated/prisma

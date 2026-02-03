@@ -1,24 +1,14 @@
-import fs from 'fs';
-import path from 'path';
-import gamesData from '@/lib/games.json';
+import prisma from '@/lib/db';
 
 async function getStats() {
-  const scoresPath = path.join(process.cwd(), 'src/data/scores.json');
-
-  const gamesCount = gamesData.length;
-  let scoresCount = 0;
-
   try {
-    const scoresData = await fs.promises.readFile(scoresPath, 'utf-8');
-    const scores = JSON.parse(scoresData);
-    // scores is object { gameSlug: [ ... ] }
-    scoresCount = Object.values(scores).reduce((acc: number, curr: any) => acc + curr.length, 0);
+    const gamesCount = await prisma.game.count();
+    const scoresCount = await prisma.score.count();
+    return { gamesCount, scoresCount };
   } catch (e) {
-     // ignore if no scores yet
-     console.warn("Could not read scores file:", e);
+     console.warn("Could not read stats from DB:", e);
+     return { gamesCount: 0, scoresCount: 0 };
   }
-
-  return { gamesCount, scoresCount };
 }
 
 export default async function AdminDashboard() {

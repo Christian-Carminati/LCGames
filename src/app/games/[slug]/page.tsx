@@ -1,50 +1,42 @@
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
-import gamesData from '@/lib/games.json';
-import { slugify } from '@/lib/utils';
+import prisma from '@/lib/db';
 import Link from 'next/link';
 import { DonateButton } from '@/components/DonateButton';
 import { GameInterface } from '@/components/GameInterface';
 
-// Generate static params for all games to enable static export if needed
+// Generate static params for all games to enable static export if needed/optimization
 export async function generateStaticParams() {
-  return gamesData.map((game) => ({
-    slug: slugify(game.title),
+  const games = await prisma.game.findMany({ select: { slug: true } });
+  return games.map((game) => ({
+    slug: game.slug,
   }));
 }
 
-interface Game {
-    title: string;
-    url: string;
-    imageUrl: string;
-    platform?: string;
-    genre?: string;
-    description?: string;
-    scoreConfig?: {
-        address: string;
-        type: string;
-        length: number;
-        baseOffset?: string;
-        endianness?: string;
-    };
-    romPath?: string;
-}
+export const dynamicParams = true; // Allow dynamic fallback
 
 interface PageProps {
     params: Promise<{ slug: string }>;
 }
 
-export default async function GameDetailPage({ params }: PageProps) {
-  const { slug } = await params;
+export default async function GameDetailPage(props: PageProps) {
+  const params = await props.params;
+  const { slug } = params;
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get('admin_token')?.value === 'authenticated';
-  const game = gamesData.find((g) => slugify(g.title) === slug) as Game | undefined;
+  
+  const game = await prisma.game.findUnique({
+      where: { slug }
+  });
 
   if (!game) {
     notFound();
   }
 
   const romPath = game.romPath || null;
+  
+  // Cast scoreConfig to any because Json value in Prisma is not strict
+  const scoreConfig = game.scoreConfig as any;
 
   return (
     <div className="container mx-auto pb-16 px-4">
@@ -58,12 +50,12 @@ export default async function GameDetailPage({ params }: PageProps) {
         gameSlug={slug}
         gameTitle={game.title}
         romPath={romPath}
-        scoreConfig={game.scoreConfig}
-        imageUrl={game.imageUrl}
-        platform={game.platform}
-        genre={game.genre}
-        originalUrl={game.url}
-        description={game.description}
+        scoreConfig={scoreConfig}
+        imageUrl={game.imageUrl || ''}
+        platform={game.platform || 'C64'}
+        genre={game.genre || ''}
+        originalUrl={game.url || ''}
+        description={game.description || ''}
         isAdmin={isAdmin}
         />
 

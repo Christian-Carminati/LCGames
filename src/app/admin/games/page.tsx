@@ -1,11 +1,13 @@
-
 import Link from 'next/link';
-import { getGames } from '@/lib/adminGames';
-import { slugify } from '@/lib/utils';
+import prisma from '@/lib/db';
 import DeleteGameButton from '@/components/DeleteGameButton';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminGamesPage() {
-  const games = await getGames();
+  const games = await prisma.game.findMany({
+    orderBy: { title: 'asc' }
+  });
 
   return (
     <div className="space-y-4">
@@ -27,16 +29,15 @@ export default async function AdminGamesPage() {
           </thead>
           <tbody>
             {games.map((game) => {
-              const slug = slugify(game.title);
               return (
-                <tr key={slug}>
+                <tr key={game.slug}>
                   <td>{game.title}</td>
                   <td>{game.platform}</td>
                   <td className="flex gap-2">
-                    <Link href={`/admin/games/${slug}`} className="nes-btn is-primary">
+                    <Link href={`/admin/games/${game.slug}`} className="nes-btn is-primary">
                       Edit
                     </Link>
-                    <DeleteGameButton slug={slug} />
+                    <DeleteGameButton slug={game.slug} />
                   </td>
                 </tr>
               );

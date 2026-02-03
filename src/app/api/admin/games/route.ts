@@ -1,23 +1,44 @@
-
 import { NextResponse } from 'next/server';
-import { getGames, addGame } from '@/lib/adminGames';
+import prisma from '@/lib/db';
 
 export async function GET() {
-  const games = await getGames();
-  return NextResponse.json(games);
+  try {
+    const games = await prisma.game.findMany({
+      orderBy: { title: 'asc' }
+    });
+    return NextResponse.json(games);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch games' }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // Validate body?
     if (!body.title) {
         return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
     
-    await addGame(body);
-    return NextResponse.json({ success: true, game: body });
+    // Auto-generate slug if not provided/derived
+    const slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    const newGame = await prisma.game.create({
+      data: {
+        slug,
+        title: body.title,
+        description: body.description,
+        platform: body.platform || "C64",
+        genre: body.genre,
+        imageUrl: body.imageUrl,
+        url: body.url,
+        romPath: body.romPath,
+        scoreConfig: body.scoreConfig ? body.scoreConfig : undefined
+      }
+    });
+
+    return NextResponse.json({ success: true, game: newGame });
   } catch (error) {
+    console.error("Failed to create game:", error);
     return NextResponse.json({ error: 'Failed to create game' }, { status: 500 });
   }
 }

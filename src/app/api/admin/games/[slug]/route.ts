@@ -1,62 +1,78 @@
 import { NextResponse } from 'next/server';
-import { getGames, saveGames, Game } from '@/lib/adminGames';
-import { slugify } from '@/lib/utils';
+import prisma from '@/lib/db';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  props: { params: Promise<{ slug: string }> }
 ) {
-  const { slug } = await params;
-  const games: Game[] = await getGames();
-  const game = games.find((g) => slugify(g.title) === slug);
+  const params = await props.params;
+  const { slug } = params;
   
-  if (!game) {
-    return NextResponse.json({ error: 'Game not found' }, { status: 404 });
+  try {
+    const game = await prisma.game.findUnique({
+      where: { slug }
+    });
+    
+    if (!game) {
+      return NextResponse.json({ error: 'Game not found' }, { status: 404 });
+    }
+    
+    return NextResponse.json(game);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch game' }, { status: 500 });
   }
-  
-  return NextResponse.json(game);
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  props: { params: Promise<{ slug: string }> }
 ) {
+  const params = await props.params;
   try {
-    const { slug } = await params;
+    const { slug } = params;
     const body = await request.json();
-    const games: Game[] = await getGames();
-    const index = games.findIndex((g) => slugify(g.title) === slug);
     
-    if (index === -1) {
-      return NextResponse.json({ error: 'Game not found' }, { status: 404 });
+    // Check exist
+    const existing = await prisma.game.findUnique({ where: { slug } });
+    if (!existing) {
+       return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
-    
-    // Update game
-    games[index] = { ...games[index], ...body };
-    await saveGames(games);
-    
-    return NextResponse.json({ success: true, game: games[index] });
-  } catch (_) {
+
+    const updated = await prisma.game.update({
+      where: { slug },
+      data: {
+        title: body.title,
+        description: body.description,
+        platform: body.platform,
+        genre: body.genre,
+        imageUrl: body.imageUrl,
+        url: body.url,
+        romPath: body.romPath,
+        scoreConfig: body.scoreConfig ? body.scoreConfig : undefined
+      }
+    });
+
+    return NextResponse.json({ success: true, game: updated });
+  } catch (error) {
+     console.error("Update error:", error);
     return NextResponse.json({ error: 'Failed to update game' }, { status: 500 });
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  props: { params: Promise<{ slug: string }> }
 ) {
+  const params = await props.params;
   try {
-    const { slug } = await params;
-    const games: Game[] = await getGames();
-    const filteredGames = games.filter((g) => slugify(g.title) !== slug);
+    const { slug } = params;
     
-    if (games.length === filteredGames.length) {
-       return NextResponse.json({ error: 'Game not found' }, { status: 404 });
-    }
+    await prisma.game.delete({
+       where: { slug } // will throw if not found? No, delete throws if not found
+    });
     
-    await saveGames(filteredGames);
     return NextResponse.json({ success: true });
-  } catch (_) {
+  } catch (error) {
     return NextResponse.json({ error: 'Failed to delete game' }, { status: 500 });
   }
 }
