@@ -1,55 +1,32 @@
+import prisma from '@/lib/db';
+import Link from 'next/link';
 import DeleteScoreButton from '@/components/DeleteScoreButton';
 import ScoreControls from '@/components/admin/ScoreControls';
-import fs from 'fs';
-import path from 'path';
-import Link from 'next/link';
 
-interface Score {
-  name: string;
-  score: number;
-  date: string;
-}
+export const dynamic = 'force-dynamic';
 
-interface ScoreData {
-  [gameSlug: string]: Score[];
-}
-
-interface FlattenedScore extends Score {
-  gameSlug: string;
-  index: number;
-  [key: string]: string | number; // For sorting access
-}
-
-async function getScores(): Promise<ScoreData> {
-  const scoresPath = path.join(process.cwd(), 'src/data/scores.json');
-  try {
-    const data = await fs.promises.readFile(scoresPath, 'utf-8');
-    return JSON.parse(data);
-  } catch (_) {
-    return {};
-  }
-}
-
-export default async function AdminScoresPage({
-  searchParams,
-}: {
+export default async function AdminScoresPage(props: {
   searchParams: Promise<{ game?: string; sort?: string; order?: string }>;
 }) {
-  const params = await searchParams;
-  const scoresData = await getScores();
-  const gameSlugs = Object.keys(scoresData);
+  const params = await props.searchParams;
   
-  // Flatten scores
-  let allScores: FlattenedScore[] = [];
-  gameSlugs.forEach(gameSlug => {
-      scoresData[gameSlug].forEach((score: Score, index: number) => {
-          allScores.push({
-              gameSlug,
-              index,
-              ...score
-          });
-      });
+  // Fetch all scores with user data
+  const rawScores = await prisma.score.findMany({
+    include: {
+        user: true
+    },
+    orderBy: { createdAt: 'desc' }
   });
+
+  // Transform to flat format suitable for table and sorting
+  let allScores = rawScores.map(s => ({
+      id: s.id,
+      gameSlug: s.gameSlug,
+      name: s.user.name || 'Anonymous',
+      score: s.value,
+      date: s.createdAt.toLocaleDateString(),
+      createdAt: s.createdAt.getTime() // Helper for sort
+  }));
 
   // Filter
   if (params.game) {
@@ -60,22 +37,26 @@ export default async function AdminScoresPage({
   if (params.sort) {
     const { sort, order = 'asc' } = params;
     allScores.sort((a, b) => {
+      // @ts-ignore - dynamic sort key access
       let valA = a[sort];
+      // @ts-ignore
       let valB = b[sort];
-
-      // Handle numeric scores
+      
       if (sort === 'score') {
-        valA = Number(valA);
-        valB = Number(valB);
+          valA = Number(valA);
+          valB = Number(valB);
+      }
+      
+      // Special case for date if we want actual time sort
+      if (sort === 'date') {
+          valA = a.createdAt;
+          valB = b.createdAt;
       }
 
       if (valA < valB) return order === 'asc' ? -1 : 1;
       if (valA > valB) return order === 'asc' ? 1 : -1;
       return 0;
     });
-  } else {
-    // Default sort by date desc
-    allScores.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   const getSortLink = (key: string) => {
@@ -97,6 +78,9 @@ export default async function AdminScoresPage({
       </Link>
     );
   };
+  
+  // Get unique game slugs for filter
+  const gameSlugs = Array.from(new Set(rawScores.map(s => s.gameSlug))).sort();
 
   return (
     <div className="space-y-4">
@@ -116,14 +100,14 @@ export default async function AdminScoresPage({
             </tr>
           </thead>
           <tbody>
-            {allScores.map((item, i) => (
-                <tr key={`${item.gameSlug}-${item.index}-${i}`}>
+            {allScores.map((item) => (
+                <tr key={item.id}>
                   <td>{item.gameSlug}</td>
                   <td>{item.name}</td>
                   <td>{item.score}</td>
                   <td>{item.date}</td>
                   <td>
-                    <DeleteScoreButton gameSlug={item.gameSlug} scoreIndex={item.index} />
+                    <DeleteScoreButton scoreId={item.id} />
                   </td>
                 </tr>
             ))}

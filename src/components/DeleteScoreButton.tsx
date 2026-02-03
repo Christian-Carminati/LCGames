@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-export default function DeleteScoreButton({ gameSlug, scoreIndex }: { gameSlug: string, scoreIndex: number }) {
+export default function DeleteScoreButton({ scoreId }: { scoreId: string }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -15,7 +15,7 @@ export default function DeleteScoreButton({ gameSlug, scoreIndex }: { gameSlug: 
       const res = await fetch('/api/admin/scores', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameSlug, scoreIndex }),
+        body: JSON.stringify({ scoreId }),
       });
       
       if (res.ok) {
