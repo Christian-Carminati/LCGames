@@ -3,9 +3,32 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function GameForm({ initialData = {}, isEdit = false }: { initialData?: any, isEdit?: boolean }) {
+interface ScoreConfig {
+  address: string;
+  type: string;
+  length: number;
+}
+
+interface GameFormData {
+  title: string;
+  platform: string;
+  genre: string;
+  description: string;
+  url: string;
+  imageUrl: string;
+  romPath: string;
+  scoreConfig: ScoreConfig;
+  [key: string]: any; // Allow dynamic access for generic handling if needed, but try to avoid
+}
+
+interface GameFormProps {
+    initialData?: Partial<GameFormData>;
+    isEdit?: boolean;
+}
+
+export default function GameForm({ initialData = {}, isEdit = false }: GameFormProps) {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<GameFormData>({
     title: '',
     platform: 'C64',
     genre: '',
@@ -27,8 +50,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: { initial
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name.startsWith('scoreConfig.')) {
-      const field = name.split('.')[1];
-      setFormData((prev: any) => ({
+      const field = name.split('.')[1] as keyof ScoreConfig;
+      setFormData((prev) => ({
         ...prev,
         scoreConfig: {
           ...prev.scoreConfig,
@@ -36,7 +59,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: { initial
         }
       }));
     } else {
-      setFormData((prev: any) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -47,7 +70,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: { initial
 
     try {
       const url = isEdit 
-        ? `/api/admin/games/${slugify(initialData.title)}` 
+        ? `/api/admin/games/${slugify(initialData.title || '')}` 
         : '/api/admin/games';
       
       const method = isEdit ? 'PUT' : 'POST';
@@ -64,8 +87,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: { initial
 
       router.push('/admin/games');
       router.refresh(); 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }

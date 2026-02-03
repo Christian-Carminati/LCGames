@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import prisma from '@/lib/db';
 import DeleteGameButton from '@/components/DeleteGameButton';
+import { Game } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminGamesPage() {
-  const games = await prisma.game.findMany({
+  const games: Game[] = await prisma.game.findMany({
     orderBy: { title: 'asc' }
   });
 

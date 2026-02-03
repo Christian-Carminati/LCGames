@@ -35,8 +35,16 @@ export default async function GameDetailPage(props: PageProps) {
 
   const romPath = game.romPath || null;
   
-  // Cast scoreConfig to any because Json value in Prisma is not strict
-  const scoreConfig = game.scoreConfig as any;
+  // Safe cast for scoreConfig since Prisma Json type is generic
+  interface ScoreConfig {
+      address: string;
+      type: string;
+      length: number;
+  }
+  
+  const scoreConfig = (game.scoreConfig && typeof game.scoreConfig === 'object') 
+      ? game.scoreConfig as unknown as ScoreConfig 
+      : undefined;
 
   return (
     <div className="container mx-auto pb-16 px-4">
