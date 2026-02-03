@@ -26,6 +26,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" href="https://cdn.emulatorjs.org/stable/data/loader.js" as="script" />
+      </head>
       <body
         className={`${pressStart2P.variable} min-h-screen`}
       >

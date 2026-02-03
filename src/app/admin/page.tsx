@@ -1,21 +1,12 @@
-
 import fs from 'fs';
 import path from 'path';
+import gamesData from '@/lib/games.json';
 
 async function getStats() {
-  const gamesPath = path.join(process.cwd(), 'src/lib/games.json');
   const scoresPath = path.join(process.cwd(), 'src/data/scores.json');
 
-  let gamesCount = 0;
+  const gamesCount = gamesData.length;
   let scoresCount = 0;
-
-  try {
-    const gamesData = await fs.promises.readFile(gamesPath, 'utf-8');
-    const games = JSON.parse(gamesData);
-    gamesCount = games.length;
-  } catch (e) {
-    console.error("Error reading games for stats", e);
-  }
 
   try {
     const scoresData = await fs.promises.readFile(scoresPath, 'utf-8');
@@ -24,6 +15,7 @@ async function getStats() {
     scoresCount = Object.values(scores).reduce((acc: number, curr: any) => acc + curr.length, 0);
   } catch (e) {
      // ignore if no scores yet
+     console.warn("Could not read scores file:", e);
   }
 
   return { gamesCount, scoresCount };
