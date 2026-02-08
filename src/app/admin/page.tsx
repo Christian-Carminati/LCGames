@@ -30,7 +30,7 @@ export default async function AdminDashboard() {
         <div className="nes-container with-title is-rounded">
             <p className="title">Scores</p>
             <div className="text-center">
-                <span className="nes-text is-warning text-4xl">{stats.scoresCount}</span>
+                <span className="nes-text is-warning text-4xl">{stats.scoresCount ?? 0}</span>
                 <p>Total Scores Submitted</p>
             </div>
         </div>

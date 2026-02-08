@@ -47,6 +47,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin }: Emula
   const [debugResult, setDebugResult] = useState('');
 
   const handleHunt = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const win = iframeRef.current?.contentWindow as any;
     if (win && win.hunt) {
        const { bytes, mode } = parseSearchPattern(debugPattern);
@@ -121,6 +122,21 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin }: Emula
     };
   }, [onScoreUpdate]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlay = () => {
+      setIsPlaying(true);
+      setTimeout(() => {
+          if (containerRef.current) {
+              const element = containerRef.current;
+              if (element.requestFullscreen) {
+                  element.requestFullscreen().catch(err => console.error("Fullscreen error:", err));
+              }
+          }
+      }, 100);
+  };
+
   if (!romPath) {
      return (
         <div className="aspect-[4/3] bg-c64-bg border-8 border-c64-border flex items-center justify-center text-c64-text font-c64">
@@ -131,14 +147,26 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin }: Emula
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="aspect-[4/3] w-full border-8 border-c64-border bg-black">
-        <iframe 
-            ref={iframeRef}
-            src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}${isAdmin ? '&debug=1' : ''}`}
-            className="w-full h-full border-0"
-            allow="autoplay; fullscreen; gamepad"
-            title="C64 Emulator"
-        />
+      <div ref={containerRef} className="aspect-[4/3] w-full border-8 border-c64-border bg-black relative">
+        {!isPlaying ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
+                <p className="text-c64-text mb-4 text-center">READY PLAYER ONE?</p>
+                <button 
+                    onClick={handlePlay} 
+                    className="nes-btn is-primary"
+                >
+                    PLAY GAME
+                </button>
+            </div>
+        ) : (
+            <iframe 
+                ref={iframeRef}
+                src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}${isAdmin ? '&debug=1' : ''}`}
+                className="w-full h-full border-0"
+                allow="autoplay; fullscreen; gamepad"
+                title="C64 Emulator"
+            />
+        )}
       </div>
       
       <div className="mt-4 flex flex-col items-center gap-2">

@@ -26,7 +26,6 @@ export default async function Home() {
            {isAdmin && (
              <Link href="/admin" className="nes-btn is-error">ADMIN PANEL</Link>
            )}
-           <button type="button" className="nes-btn">OPTIONS</button>
         </div>
       </div>
     </div>

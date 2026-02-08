@@ -49,6 +49,12 @@
         window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
         window.EJS_startOnLoaded = true;
         window.EJS_biosUrl = "";
+        
+        // C64 Fast Loading (Disable True Drive Emulation)
+        window.EJS_coreOptions = {
+            vice_drive_true_emulation: "disabled",
+            vice_warp_mode: "enabled"
+        };
 
         // Load the EmulatorJS Loader
         const script = document.createElement("script");
