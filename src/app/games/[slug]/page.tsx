@@ -41,6 +41,8 @@ export default async function GameDetailPage(props: PageProps) {
       type: 'string';
       length: number;
       multiplier?: number;
+      baseOffset?: string;
+      endianness?: string;
   }
   
   const scoreConfig = (game.scoreConfig && typeof game.scoreConfig === 'object') 

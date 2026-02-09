@@ -8,6 +8,8 @@ interface ScoreConfig {
   type: string;
   length: number;
   multiplier?: number;
+  baseOffset?: string;
+  endianness?: string;
 }
 
 interface GameFormData {
@@ -41,7 +43,9 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       address: '',
       type: 'byte',
       length: 1,
-      multiplier: 1
+      multiplier: 1,
+      baseOffset: '',
+      endianness: 'big'
     },
     ...initialData
   });
@@ -170,6 +174,21 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
           <div className="nes-field">
             <label htmlFor="scoreConfig.multiplier">Multiplier (Optional, e.g. 10)</label>
             <input type="number" id="scoreConfig.multiplier" name="scoreConfig.multiplier" className="nes-input" value={formData.scoreConfig?.multiplier || ''} onChange={handleChange} placeholder="1" />
+          </div>
+
+          <div className="nes-field">
+            <label htmlFor="scoreConfig.baseOffset">Base Offset (Hex, Optional)</label>
+            <input type="text" id="scoreConfig.baseOffset" name="scoreConfig.baseOffset" className="nes-input" value={formData.scoreConfig?.baseOffset || ''} onChange={handleChange} placeholder="0x0000" />
+          </div>
+
+          <div className="nes-field">
+            <label htmlFor="scoreConfig.endianness">Endianness</label>
+            <div className="nes-select">
+                <select id="scoreConfig.endianness" name="scoreConfig.endianness" value={formData.scoreConfig?.endianness || 'big'} onChange={handleChange}>
+                    <option value="big">Big Endian (Default)</option>
+                    <option value="little">Little Endian</option>
+                </select>
+            </div>
           </div>
       </div>
 

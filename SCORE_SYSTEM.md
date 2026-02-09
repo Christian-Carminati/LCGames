@@ -20,7 +20,9 @@ To enable score tracking for a game, add a `scoreConfig` object to its entry in 
   "scoreConfig": {
     "address": "0x0800",  // The memory address (Hex) where score starts
     "type": "byte",     // Format: "byte", "int", "bcd", or "string"
-    "length": 1         // Number of bytes to read
+    "length": 1,        // Number of bytes to read
+    "baseOffset": "0x1000", // Optional: Add strict offset to address
+    "endianness": "little"  // Optional: "big" (default) or "little"
   }
 }
 ```

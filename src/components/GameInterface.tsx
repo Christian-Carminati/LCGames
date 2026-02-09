@@ -13,6 +13,8 @@ interface GameInterfaceProps {
         type: string;
         length: number;
         multiplier?: number;
+        baseOffset?: string;
+        endianness?: string;
     };
     imageUrl: string;
     platform?: string;
