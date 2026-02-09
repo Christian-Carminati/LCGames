@@ -21,7 +21,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzIxMTM2OTM5LnBuZw==/315x250%23c/HLjg%2FB.png",
         "description": "This game is a C64 conversion of Space Invaders, the famous arcade game created by Tomohiro Nishikado in 1978.",
         "genre": "Shooter",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/SpaceInvadersOneButton.d64"
     },
     {
         "title": "Space Invaders (C64)",
@@ -29,7 +30,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzIwNjk0NDQxLnBuZw==/315x250%23c/GXcYtk.png",
         "description": "This game is a C64 conversion of Space Invaders, the famous arcade game created by Tomohiro Nishikado in 1978.",
         "genre": "Shooter",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/SpaceInvaders.d64"
     },
     {
         "title": "Mike Mech 2 (C64)",
@@ -37,7 +39,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzE5NzA0NjE5LnBuZw==/315x250%23c/nUGY6u.png",
         "description": "This game runs perfectly on both PAL and NTSC models of the Commodore 64.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/mikemech2.d64"
     },
     {
         "title": "RandomPac (C64)",
@@ -45,7 +48,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzIzNzE3NjU0LnBuZw==/315x250%23c/HqJDzf.png",
         "description": "RandomPac is a tribute to Pac-Man, an arcade game released by Namco in 1980.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/RandomPac.d64"
     },
     {
         "title": "Lock'n'Chase (C64)",
@@ -53,7 +57,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzE1MDQyNDEzLnBuZw==/315x250%23c/k5lSfq.png",
         "description": "This game is a C64 conversion of Lock'n'Chase, an arcade game developed by DECO in 1981.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/Lock'n'Chase.d64"
     },
     {
         "title": "Dig Dug (C64)",
@@ -61,7 +66,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzE0NTUzNDk3LnBuZw==/315x250%23c/Wymflj.png",
         "description": "This game is a C64 conversion of Dig Dug, an arcade game developed by Namco in 1982.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/digdug.d64"
     },
     {
         "title": "Santa's Troubles (C64)",
@@ -69,7 +75,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzE0MjgyMjg5LnBuZw==/315x250%23c/85aV%2FD.png",
         "description": "This game runs perfectly on both PAL and NTSC models of the Commodore 64.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/santa'stroubles.d64"
     },
     {
         "title": "Dig Dug Revival (C64)",
@@ -94,7 +101,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzEyMDczMjQ3LnBuZw==/315x250%23c/Oc6AWY.png",
         "description": "This game runs perfectly on both PAL and NTSC models of the Commodore 64.",
         "genre": "Shooter",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/thelastdefender.d64"
     },
     {
         "title": "Mike Mech",
@@ -110,7 +118,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzEwNzI1Nzc1LnBuZw==/315x250%23c/G5bYwG.png",
         "description": "This game runs perfectly on both PAL and NTSC models of the Commodore 64.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/ScoutTheStray.d64"
     },
     {
         "title": "Bagman Strikes Back",
@@ -126,7 +135,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzk3NDI2ODMucG5n/315x250%23c/RwkyeI.png",
         "description": "This game runs perfectly on both PAL and NTSC models of the Commodore 64.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/mikemech.d64"
     },
     {
         "title": "Tutankham Returns (C64)",
@@ -134,7 +144,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzg0ODM5NzkucG5n/315x250%23c/E1jWJ6.png",
         "description": "This game is a tribute to Tutankham, an arcade game developed by Konami in 1982.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/tutankhamreturns.d64"
     },
     {
         "title": "Bagman Strikes Back (C64)",
@@ -142,7 +153,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzgzMTc0NDIucG5n/315x250%23c/%2FD4cFR.png",
         "description": "This game is a tribute to Bagman, an arcade game released by Valadon Automation in 1982. It is also the sequel to Bagman Comes Back.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/bagmanstrikesback.d64"
     },
     {
         "title": "Tutankham (C64)",
@@ -150,7 +162,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzgyMDg0NjcucG5n/315x250%23c/rwtb72.png",
         "description": "This game is a C64 conversion of Tutankham, an arcade game developed by Konami in 1982.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/tutankham.d64"
     },
     {
         "title": "Bagman Comes Back (C64)",
@@ -158,7 +171,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzc0OTc2MTgucG5n/315x250%23c/AR8XCY.png",
         "description": "This game is a tribute to Bagman, an arcade game released by Valadon Automation in 1982.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/bagmancomesback.d64"
     },
     {
         "title": "Lady Pac",
@@ -174,7 +188,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzYzNzExMjAucG5n/315x250%23c/p0Mx3W.png",
         "description": "Lady Pac is a homage to Ms. Pac-Man, an arcade game published by Midway in 1982.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/LadyPac.d64"
     },
     {
         "title": "Dig Dug Revival",
@@ -182,7 +197,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzU1MDc5OTMucG5n/315x250%23c/LT%2FPty.png",
         "description": "This game is a homage to Dig Dug, an arcade game developed by Namco in 1982.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/DigDugRevival.d64"
     },
     {
         "title": "Bagman Comes Back",
@@ -190,7 +206,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzUwNzkyOTgucG5n/315x250%23c/YMRGlq.png",
         "description": "This game is a homage to Bagman, an arcade game released by Valadon Automation in 1982.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/bagmancomesback.d64"
     },
     {
         "title": "Space Invaders",
@@ -198,7 +215,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzQ4MjU5MTIucG5n/315x250%23c/kn0shr.png",
         "description": "This game is a tribute to Space Invaders, the famous arcade game created by Tomohiro Nishikado in 1978.",
         "genre": "Shooter",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/SpaceInvaders.d64"
     },
     {
         "title": "Amiga games pack",
@@ -262,7 +280,8 @@
         "imageUrl": "https://img.itch.zone/aW1nLzIzMjA4MTA2LnBuZw==/315x250%23c/x5Jwrz.png",
         "description": "This game is a homage to H.E.R.O. from John Van Ryzin, published by Activision in 1984.",
         "genre": "Platformer",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/HeroIsBack.d64"
     },
     {
         "title": "RandomPac",
@@ -270,6 +289,7 @@
         "imageUrl": "https://img.itch.zone/aW1nLzMyNDAwMzcucG5n/315x250%23c/DQb5oV.png",
         "description": "RandomPac is a tribute to Pac-Man (Pakkuman), an arcade game released by Namco in 1980.",
         "genre": "Action",
-        "platform": "C64"
+        "platform": "C64",
+        "romPath": "/roms/RandomPac.d64"
     }
 ]
