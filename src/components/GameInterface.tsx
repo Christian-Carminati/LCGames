@@ -12,6 +12,7 @@ interface GameInterfaceProps {
         address: string;
         type: string;
         length: number;
+        multiplier?: number;
     };
     imageUrl: string;
     platform?: string;

@@ -7,6 +7,7 @@ interface ScoreConfig {
   address: string;
   type: string;
   length: number;
+  multiplier?: number;
 }
 
 interface GameFormData {
@@ -39,7 +40,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
     scoreConfig: {
       address: '',
       type: 'byte',
-      length: 1
+      length: 1,
+      multiplier: 1
     },
     ...initialData
   });
@@ -55,7 +57,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
         ...prev,
         scoreConfig: {
           ...prev.scoreConfig,
-          [field]: field === 'length' ? parseInt(value) || 0 : value
+          [field]: (field === 'length' || field === 'multiplier') ? parseInt(value) || 0 : value
         }
       }));
     } else {
@@ -163,6 +165,11 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
           <div className="nes-field">
             <label htmlFor="scoreConfig.length">Length (Bytes)</label>
             <input type="number" id="scoreConfig.length" name="scoreConfig.length" className="nes-input" value={formData.scoreConfig?.length || 1} onChange={handleChange} />
+          </div>
+
+          <div className="nes-field">
+            <label htmlFor="scoreConfig.multiplier">Multiplier (Optional, e.g. 10)</label>
+            <input type="number" id="scoreConfig.multiplier" name="scoreConfig.multiplier" className="nes-input" value={formData.scoreConfig?.multiplier || ''} onChange={handleChange} placeholder="1" />
           </div>
       </div>
 

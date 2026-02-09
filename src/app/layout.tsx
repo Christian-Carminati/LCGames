@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Commodore 64 Retro Game Archive",
 };
 
+import { NotificationProvider } from "@/context/NotificationContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +35,7 @@ export default function RootLayout({
         className={`${pressStart2P.variable} min-h-screen`}
       >
         <Providers>
+          <NotificationProvider>
             <InsertCoin />
             <div className="crt-scanline" />
             <header className="flex justify-end p-4 absolute top-0 right-0 z-20">
@@ -45,6 +48,7 @@ export default function RootLayout({
                 <p className="text-xs mb-4 text-c64-text">LC-GAMES ARCHIVE</p>
                 <DonateButton />
             </footer>
+          </NotificationProvider>
         </Providers>
       </body>
     </html>

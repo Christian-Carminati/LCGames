@@ -8,6 +8,7 @@ interface EmulatorProps {
       length: number;
       baseOffset?: string;
       endianness?: string;
+      multiplier?: number;
   };
   onScoreUpdate?: (score: number) => void;
   isAdmin?: boolean;

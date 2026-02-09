@@ -49,11 +49,11 @@
         window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
         window.EJS_startOnLoaded = true;
         window.EJS_biosUrl = "";
-        
+
         // C64 Fast Loading (Disable True Drive Emulation)
         window.EJS_coreOptions = {
-            vice_drive_true_emulation: "disabled",
-            vice_warp_mode: "enabled"
+          vice_drive_true_emulation: "disabled",
+          vice_warp_mode: "enabled",
         };
 
         // Load the EmulatorJS Loader
@@ -178,42 +178,52 @@
       // throttle logging
       let lastLog = 0;
 
-      const debugMode = urlParams.get("debug") === "1" || urlParams.get("debug") === "true";
+      const debugMode =
+        urlParams.get("debug") === "1" || urlParams.get("debug") === "true";
 
       function extractScore(config) {
         const heap = findHeap();
         if (!heap) return null;
 
         let address = parseInt(config.address, 16);
-        
+
         // Add optional base offset (useful if C64 RAM starts at a specific location in Heap)
         if (config.baseOffset) {
-            address += parseInt(config.baseOffset, 16);
+          address += parseInt(config.baseOffset, 16);
         }
 
         const length = config.length || 1;
-        const type = config.type || 'byte';
+        const type = config.type || "byte";
 
         // Read raw bytes
         const bytes = [];
         for (let i = 0; i < length; i++) {
-            // Validate memory bounds
-            if (address + i >= heap.length) return null;
-            bytes.push(heap[address + i]);
+          // Validate memory bounds
+          if (address + i >= heap.length) return null;
+          bytes.push(heap[address + i]);
         }
 
         const now = Date.now();
         if (debugMode && now - lastLog > 5000) {
-            console.log(`[DEBUG_SCORE] Addr: ${config.address} (Base: ${config.baseOffset || 0} -> Real: ${address}), Bytes: [${bytes.map(b => '0x' + b.toString(16).padStart(2,'0')).join(', ')}], Type: ${type}`);
-            lastLog = now;
+          console.log(
+            `[DEBUG_SCORE] Addr: ${config.address} (Base: ${config.baseOffset || 0} -> Real: ${address}), Bytes: [${bytes.map((b) => "0x" + b.toString(16).padStart(2, "0")).join(", ")}], Type: ${type}`,
+          );
+          lastLog = now;
         }
 
         // Handle Little Endian for BCD (reverse to Big Endian for parsing)
-        if (type === 'bcd' && config.endianness === 'little') {
-            bytes.reverse();
+        if (type === "bcd" && config.endianness === "little") {
+          bytes.reverse();
         }
 
-        return parseBytesToScore(bytes, type);
+        let score = parseBytesToScore(bytes, type);
+
+        // Apply multiplier if defined
+        if (config.multiplier && typeof score === "number") {
+          score *= config.multiplier;
+        }
+
+        return score;
       }
 
       /**

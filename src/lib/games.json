@@ -83,7 +83,8 @@
             "baseOffset": "0x4f9eb0",
             "type": "bcd",
             "length": 3,
-            "endianness": "little"
+            "endianness": "little",
+            "multiplier": 10
         },
         "romPath": "/roms/DigDugRevival.d64"
     },

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
+import { useNotification } from '@/context/NotificationContext';
 
 interface Score {
   name: string;
@@ -48,6 +49,8 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoar
     fetchScores();
   }, [gameSlug]);
 
+  const { showNotification } = useNotification();
+  
   const handleSaveScore = async () => {
     if (!session || capturedScore === undefined) return;
 
@@ -66,13 +69,13 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoar
             const updatedScores = await res.json();
             // Update local state with top 10
             setScores(updatedScores.slice(0, 10));
-            alert("Score Saved!");
+            showNotification("Score Saved!", "success");
         } else {
-            alert("Failed to save score.");
+            showNotification("Failed to save score.", "error");
         }
     } catch (e) {
         console.error("Failed to save score", e);
-        alert("Error saving score.");
+        showNotification("Error saving score.", "error");
     } finally {
         setSubmitting(false);
     }
