@@ -64,23 +64,26 @@ model Game {
   imageUrl    String?
   url         String?  // Itch.io URL
   romPath     String?
-  scoreConfig Json?    // Stores address, type, length, endianness
+  youtubeUrl       String?  // YouTube video URL (used for PC games instead of emulator)
+  difficultyConfig Json?    // Config for reading difficulty from memory, e.g. { "address": "0x2299" }
+  scoreConfig      Json?    // Stores address, type, length, endianness
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   scores      Score[]
 }
 
 model Score {
-  id        String   @id @default(cuid())
-  value     Int
-  userId    String
-  gameSlug  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  value      Int
+  difficulty Int      @default(0) // Difficulty level the player was on (0 if game has no difficulty)
+  userId     String
+  gameSlug   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   game Game @relation(fields: [gameSlug], references: [slug])
 
-  @@unique([userId, gameSlug]) // One score per user per game (High Score)
+  @@unique([userId, gameSlug, difficulty]) // One high score per user per game per difficulty
 }

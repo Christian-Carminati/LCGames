@@ -15,19 +15,30 @@ interface ScoreBoardProps {
   gameSlug: string;
   capturedScore?: number;
   isAutoTracked?: boolean;
+  currentDifficulty?: number;
+  hasDifficultyLevels?: boolean;
 }
 
-export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoardProps) {
+export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDifficulty = 0, hasDifficultyLevels = false }: ScoreBoardProps) {
   const { data: session } = useSession();
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
+
+  // Sync selected difficulty with current emulator difficulty
+  useEffect(() => {
+    if (hasDifficultyLevels) {
+      setSelectedDifficulty(currentDifficulty);
+    }
+  }, [currentDifficulty, hasDifficultyLevels]);
 
   // Fetch scores from API
   useEffect(() => {
     const fetchScores = async () => {
       try {
-        const res = await fetch(`/api/scores?gameSlug=${gameSlug}`);
+        const diffParam = hasDifficultyLevels ? `&difficulty=${selectedDifficulty}` : '';
+        const res = await fetch(`/api/scores?gameSlug=${gameSlug}${diffParam}`);
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
@@ -47,7 +58,7 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoar
     };
 
     fetchScores();
-  }, [gameSlug]);
+  }, [gameSlug, selectedDifficulty, hasDifficultyLevels]);
 
   const { showNotification } = useNotification();
   
@@ -61,7 +72,8 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoar
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 gameSlug,
-                score: capturedScore
+                score: capturedScore,
+                difficulty: hasDifficultyLevels ? currentDifficulty : 0
             })
         });
 
@@ -84,12 +96,32 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked }: ScoreBoar
   return (
     <div className="nes-container is-rounded is-dark with-title">
       <p className="title">HIGH SCORES</p>
+
+      {/* Difficulty Tabs */}
+      {hasDifficultyLevels && (
+        <div className="mb-4 flex flex-wrap gap-2 justify-center">
+          {[0, 1, 2, 3, 4, 5].map((d) => (
+            <button
+              key={d}
+              type="button"
+              className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : ''}`}
+              onClick={() => setSelectedDifficulty(d)}
+              style={{ fontSize: '0.65rem', padding: '4px 8px' }}
+            >
+              LV.{d}
+            </button>
+          ))}
+        </div>
+      )}
       
       {/* Show Current/Captured Score Panel for Auto-Tracked Games */}
       {isAutoTracked && (
         <div className="mb-6 bg-gray-900 border-b-4 border-gray-700 pb-4 text-center">
              <p className="text-xs text-gray-400 mb-2">CURRENT SCORE</p>
              <p className="text-4xl text-green-400">{capturedScore ?? 0}</p>
+             {hasDifficultyLevels && (
+               <p className="text-xs text-yellow-400 mt-1">DIFFICULTY: {currentDifficulty}</p>
+             )}
              
              <div className="mt-4 relative z-10">
                {session ? (

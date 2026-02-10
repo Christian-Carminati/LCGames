@@ -35,8 +35,8 @@ body {
     to bottom,
     rgba(255, 255, 255, 0),
     rgba(255, 255, 255, 0) 50%,
-    rgba(0, 0, 0, 0.2) 50%,
-    rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.08)
   );
   background-size: 100% 4px;
   z-index: 9999;

@@ -30,12 +30,24 @@
       const urlParams = new URLSearchParams(window.location.search);
       const romPath = urlParams.get("rom");
       const scoreConfigJson = urlParams.get("scoreConfig");
+      const difficultyConfigJson = urlParams.get("difficultyConfig");
+
+      // Global: parsed difficulty config (if any)
+      let difficultyConfig = null;
 
       // --- Initialization ---
       if (romPath) {
         initEmulator(romPath);
         if (scoreConfigJson) {
           initMemoryMonitor(scoreConfigJson);
+        }
+        if (difficultyConfigJson) {
+          try {
+            difficultyConfig = JSON.parse(decodeURIComponent(difficultyConfigJson));
+            console.log("[DIFFICULTY] Config loaded:", difficultyConfig);
+          } catch (e) {
+            console.error("[DIFFICULTY] Failed to parse config:", e);
+          }
         }
       } else {
         showError("NO ROM LOADED");
@@ -65,6 +77,32 @@
 
       function showError(msg) {
         document.body.innerHTML = `<div style="color:white; text-align:center; padding-top:20px; font-family:monospace;">${msg}</div>`;
+      }
+
+      /**
+       * Reads the current difficulty level from memory
+       * Returns the byte value at the configured address, or 0 if not configured
+       */
+      function readDifficulty() {
+        if (!difficultyConfig || !difficultyConfig.address) return 0;
+
+        const heap = findHeap();
+        if (!heap) return 0;
+
+        let address = parseInt(difficultyConfig.address, 16);
+
+        // Apply base offset from score config if available
+        if (scoreConfigJson) {
+          try {
+            const sc = JSON.parse(decodeURIComponent(scoreConfigJson));
+            if (sc.baseOffset) {
+              address += parseInt(sc.baseOffset, 16);
+            }
+          } catch (e) { /* ignore */ }
+        }
+
+        if (address >= heap.length) return 0;
+        return heap[address] || 0;
       }
 
       // --- Memory Monitoring Logic ---
@@ -273,8 +311,9 @@
 
       function sendScoreToParent(score) {
         if (!isNaN(score)) {
+          const difficulty = readDifficulty();
           window.parent.postMessage(
-            { type: "SCORE_UPDATE", score: score },
+            { type: "SCORE_UPDATE", score: score, difficulty: difficulty },
             "*",
           );
         }

@@ -6,14 +6,20 @@ import prisma from '@/lib/db';
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const gameSlug = searchParams.get('gameSlug');
+    const difficultyParam = searchParams.get('difficulty');
 
     if (!gameSlug) {
         return NextResponse.json({ error: 'Game slug required' }, { status: 400 });
     }
 
+    const difficulty = difficultyParam !== null ? parseInt(difficultyParam, 10) : undefined;
+
     try {
         const scores = await prisma.score.findMany({
-            where: { gameSlug },
+            where: { 
+                gameSlug,
+                ...(difficulty !== undefined ? { difficulty } : {})
+            },
             orderBy: { value: 'desc' },
             take: 20,
             include: {
@@ -32,7 +38,7 @@ export async function GET(request: Request) {
             userId: s.userId, // keep userId available? Or maybe email. The frontend expects userId to match session email for highlighting.
             name: s.user.name || "Anonymous",
             score: s.value,
-            date: s.updatedAt.toLocaleDateString(),
+            date: s.updatedAt.toLocaleDateString('it-IT'),
             userImage: s.user.image
         }));
 
@@ -51,7 +57,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { gameSlug, score } = body;
+        const { gameSlug, score, difficulty = 0 } = body;
 
         if (!gameSlug || typeof score !== 'number') {
             return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
@@ -76,12 +82,13 @@ export async function POST(request: Request) {
             }
         });
 
-        // 1. Check existing score
+        // 1. Check existing score for this user+game+difficulty
         const existingScore = await prisma.score.findUnique({
             where: {
-                userId_gameSlug: {
+                userId_gameSlug_difficulty: {
                     userId: user.id,
-                    gameSlug
+                    gameSlug,
+                    difficulty
                 }
             }
         });
@@ -100,15 +107,16 @@ export async function POST(request: Request) {
             await prisma.score.create({
                 data: {
                     value: score,
+                    difficulty,
                     userId: user.id,
                     gameSlug
                 }
             });
         }
 
-        // Return updated list (top 20)
+        // Return updated list (top 20) for same difficulty
         const newScores = await prisma.score.findMany({
-            where: { gameSlug },
+            where: { gameSlug, difficulty },
             orderBy: { value: 'desc' },
             take: 20,
             include: {
@@ -122,7 +130,7 @@ export async function POST(request: Request) {
             userId: s.user.email, // Frontend uses email to check "isMe" usually? Yes, session.user.email
             name: s.user.name || "Anonymous",
             score: s.value,
-            date: s.updatedAt.toLocaleDateString(),
+            date: s.updatedAt.toLocaleDateString('it-IT'),
             userImage: s.user.image
         }));
 

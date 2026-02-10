@@ -32,7 +32,9 @@ export async function POST(request: Request) {
         imageUrl: body.imageUrl,
         url: body.url,
         romPath: body.romPath,
-        scoreConfig: body.scoreConfig ? body.scoreConfig : undefined
+        youtubeUrl: body.youtubeUrl || null,
+        scoreConfig: body.scoreConfig ? body.scoreConfig : undefined,
+        difficultyConfig: body.difficultyConfig !== undefined ? body.difficultyConfig : undefined
       }
     });
 

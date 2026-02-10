@@ -51,10 +51,15 @@ export default async function GameDetailPage(props: PageProps) {
 
   return (
     <div className="container mx-auto pb-16 px-4">
-      <div className="mb-6 flex items-center">
+      <div className="mb-6 flex items-center gap-3">
         <Link href="/games" className="nes-btn">
              <span className="text-xs">BACK To ARCADE</span>
         </Link>
+        {isAdmin && (
+          <Link href="/admin/games" className="nes-btn is-warning">
+              <span className="text-xs">ADMIN PANEL</span>
+          </Link>
+        )}
       </div>
 
       <GameInterface 
@@ -68,6 +73,8 @@ export default async function GameDetailPage(props: PageProps) {
         originalUrl={game.url || ''}
         description={game.description || ''}
         isAdmin={isAdmin}
+        youtubeUrl={game.youtubeUrl || undefined}
+        difficultyConfig={(game.difficultyConfig as { address: string } | null) || undefined}
         />
 
       <div className="mt-12 border-t-4 border-white/10 pt-8">
@@ -86,3 +93,4 @@ export default async function GameDetailPage(props: PageProps) {
     </div>
   );
 }
+

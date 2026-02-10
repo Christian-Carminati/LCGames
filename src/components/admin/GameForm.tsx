@@ -20,8 +20,10 @@ interface GameFormData {
   url: string;
   imageUrl: string;
   romPath: string;
+  youtubeUrl: string;
+  difficultyAddress: string;
   scoreConfig: ScoreConfig;
-  [key: string]: any; // Allow dynamic access for generic handling if needed, but try to avoid
+  [key: string]: string | number | ScoreConfig;
 }
 
 interface GameFormProps {
@@ -39,6 +41,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
     url: '',
     imageUrl: '',
     romPath: '',
+    youtubeUrl: '',
+    difficultyAddress: '',
     scoreConfig: {
       address: '',
       type: 'byte',
@@ -81,10 +85,17 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       
       const method = isEdit ? 'PUT' : 'POST';
 
+      const submitData = {
+        ...formData,
+        difficultyConfig: formData.difficultyAddress 
+          ? { address: formData.difficultyAddress } 
+          : null
+      };
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (!res.ok) {
@@ -145,6 +156,16 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       <div className="nes-field">
         <label htmlFor="romPath">ROM Path (e.g. /roms/game.d64)</label>
         <input type="text" id="romPath" name="romPath" className="nes-input" value={formData.romPath} onChange={handleChange} />
+      </div>
+
+      <div className="nes-field">
+        <label htmlFor="youtubeUrl">YouTube Video URL (for PC games)</label>
+        <input type="url" id="youtubeUrl" name="youtubeUrl" className="nes-input" value={formData.youtubeUrl} onChange={handleChange} placeholder="https://www.youtube.com/watch?v=..." />
+      </div>
+
+      <div className="nes-field">
+        <label htmlFor="difficultyAddress">Difficulty Memory Address (Hex, enables per-difficulty leaderboards)</label>
+        <input type="text" id="difficultyAddress" name="difficultyAddress" className="nes-input" value={formData.difficultyAddress} onChange={handleChange} placeholder="0x2299" />
       </div>
 
       <h3 className="mt-4 mb-2">Score Configuration</h3>

@@ -23,6 +23,29 @@ interface GameInterfaceProps {
     description?: string;
     donateLabel?: string;
     isAdmin?: boolean;
+    youtubeUrl?: string;
+    difficultyConfig?: { address: string };
+}
+
+function getYouTubeEmbedUrl(url: string): string | null {
+    try {
+        const parsed = new URL(url);
+        // Handle youtube.com/watch?v=ID
+        if (parsed.hostname.includes('youtube.com') && parsed.searchParams.get('v')) {
+            return `https://www.youtube.com/embed/${parsed.searchParams.get('v')}`;
+        }
+        // Handle youtu.be/ID
+        if (parsed.hostname === 'youtu.be') {
+            return `https://www.youtube.com/embed${parsed.pathname}`;
+        }
+        // Handle youtube.com/embed/ID (already embed)
+        if (parsed.pathname.startsWith('/embed/')) {
+            return url;
+        }
+    } catch {
+        // invalid URL
+    }
+    return null;
 }
 
 export function GameInterface({ 
@@ -35,15 +58,22 @@ export function GameInterface({
     genre,
     originalUrl,
     description,
-    isAdmin
+    isAdmin,
+    youtubeUrl,
+    difficultyConfig
 }: GameInterfaceProps) {
     const [currentScore, setCurrentScore] = useState<number>(0);
+    const [currentDifficulty, setCurrentDifficulty] = useState<number>(0);
 
-    const handleScoreUpdate = (score: number) => {
-        // Keep the highest score seen in this session or just current?
-        // Usually current is fine, but for safety lets trigger update
+    const handleScoreUpdate = (score: number, difficulty?: number) => {
         setCurrentScore(score);
+        if (difficulty !== undefined) {
+            setCurrentDifficulty(difficulty);
+        }
     };
+
+    const isPcGame = platform === 'PC';
+    const embedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl) : null;
 
     return (
         <div className="flex flex-col gap-6">
@@ -52,12 +82,35 @@ export function GameInterface({
                 <div className="lg:col-span-2 space-y-6">
                     <div className="nes-container is-rounded is-dark with-title">
                         <p className="title">{gameTitle}</p>
-                        <Emulator 
-                            romPath={romPath} 
-                            scoreConfig={scoreConfig} 
-                            onScoreUpdate={handleScoreUpdate}
-                            isAdmin={isAdmin}
-                        />
+                        {isPcGame ? (
+                            embedUrl ? (
+                                <div className="aspect-video w-full">
+                                    <iframe
+                                        src={embedUrl}
+                                        className="w-full h-full border-0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        title={gameTitle}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="aspect-video w-full flex items-center justify-center bg-black/50 border-4 border-c64-border">
+                                    <img 
+                                        src={imageUrl} 
+                                        alt={gameTitle} 
+                                        className="max-h-full object-contain rendering-pixelated" 
+                                    />
+                                </div>
+                            )
+                        ) : (
+                            <Emulator 
+                                romPath={romPath} 
+                                scoreConfig={scoreConfig} 
+                                onScoreUpdate={handleScoreUpdate}
+                                isAdmin={isAdmin}
+                                difficultyConfig={difficultyConfig}
+                            />
+                        )}
                     </div>
 
                     {description && (
@@ -123,11 +176,16 @@ export function GameInterface({
                 </div>
             </div>
 
-            <ScoreBoard 
-                gameSlug={gameSlug} 
-                capturedScore={currentScore}
-                isAutoTracked={!!scoreConfig}
-            />
+            {!isPcGame && (
+                <ScoreBoard 
+                    gameSlug={gameSlug} 
+                    capturedScore={currentScore}
+                    isAutoTracked={!!scoreConfig}
+                    currentDifficulty={currentDifficulty}
+                    hasDifficultyLevels={!!difficultyConfig}
+                />
+            )}
         </div>
     );
 }
+

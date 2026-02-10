@@ -26,23 +26,16 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
       : undefined;
   
   const gameData = {
-      ...game,
+      title: game.title,
+      platform: game.platform,
       description: game.description || '',
       genre: game.genre || '',
       url: game.url || '',
       imageUrl: game.imageUrl || '',
       romPath: game.romPath || '',
-      scoreConfig: scoreConfig as any // We need to cast here because Prisma types vs Interface mismatch is hard to satisfy perfectly without mapping every field. 
-      // Wait, "non usare any".
-      // If I cast `game.scoreConfig` to `ScoreConfig`, then `gameData.scoreConfig` is `ScoreConfig | undefined`.
-      // `GameFormData` expects `scoreConfig: ScoreConfig`. Partial allows undefined? No, Partial makes keys optional.
-      // But `ScoreConfig` is a nested object. `Partial<GameFormData>` means `scoreConfig` is optional, but if present must match `ScoreConfig`.
-      // My `scoreConfig` variable is `ScoreConfig | undefined`.
-      // `gameData` has `scoreConfig` property.
-      // If `scoreConfig` is undefined, `gameData.scoreConfig` is undefined.
-      // If `Partial<GameFormData>` allows `scoreConfig?: ScoreConfig | undefined`, then it matches.
-      // However, `scoreConfig` in `gameData` is being assigned.
-      // Let's rely on the previous casting `as unknown as ScoreConfig` and assign it.
+      youtubeUrl: game.youtubeUrl || '',
+      difficultyAddress: (game.difficultyConfig as { address?: string } | null)?.address || '',
+      scoreConfig: scoreConfig || { address: '', type: 'byte', length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
   };
 
   // Actually, let's fix the assignment to avoid 'as any' in the object literal if possible.
