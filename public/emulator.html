@@ -62,10 +62,12 @@
         window.EJS_startOnLoaded = true;
         window.EJS_biosUrl = "";
 
-        // C64 Fast Loading (Disable True Drive Emulation)
+        // C64 Fast Loading (Autoload Warp: auto-warps during disk loading, then resumes normal speed)
+        // True Drive Emulation must be enabled for autoload warp to work correctly
         window.EJS_coreOptions = {
-          vice_drive_true_emulation: "disabled",
-          vice_warp_mode: "enabled",
+          vice_drive_true_emulation: "enabled",
+          vice_autoloadwarp: "enabled",
+          vice_warp_boost: "enabled",
         };
 
         // Load the EmulatorJS Loader
@@ -74,6 +76,23 @@
         script.async = true;
         document.body.appendChild(script);
       }
+
+      // --- Pause Toggle (P key) ---
+      let isPaused = false;
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "p" || e.key === "P") {
+          const emu = window.EJS_emulator;
+          if (emu && typeof emu.togglePlaying === "function") {
+            emu.togglePlaying();
+            isPaused = !isPaused;
+            window.parent.postMessage(
+              { type: "PAUSE_STATE", paused: isPaused },
+              "*",
+            );
+          }
+        }
+      });
 
       function showError(msg) {
         document.body.innerHTML = `<div style="color:white; text-align:center; padding-top:20px; font-family:monospace;">${msg}</div>`;

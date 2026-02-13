@@ -47,6 +47,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficu
   const [syncStatus, setSyncStatus] = useState<string>('');
   const [debugPattern, setDebugPattern] = useState('');
   const [debugResult, setDebugResult] = useState('');
+  const [isPaused, setIsPaused] = useState(false);
 
   const handleHunt = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,6 +86,11 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficu
       // Handle Score Update (Memory Monitor)
       if (event.data?.type === 'SCORE_UPDATE' && typeof event.data.score === 'number') {
         onScoreUpdate?.(event.data.score, event.data.difficulty);
+      }
+
+      // Handle Pause State
+      if (event.data?.type === 'PAUSE_STATE' && typeof event.data.paused === 'boolean') {
+        setIsPaused(event.data.paused);
       }
 
       // Handle Save Extraction
@@ -159,19 +165,29 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficu
                 </button>
             </div>
         ) : (
-            <iframe 
-                ref={iframeRef}
-                src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}${isAdmin ? '&debug=1' : ''}${difficultyConfig ? `&difficultyConfig=${encodeURIComponent(JSON.stringify(difficultyConfig))}` : ''}`}
-                className="w-full h-full border-0"
-                allow="autoplay; fullscreen; gamepad"
-                title="C64 Emulator"
-            />
+            <>
+                <iframe 
+                    ref={iframeRef}
+                    src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}${isAdmin ? '&debug=1' : ''}${difficultyConfig ? `&difficultyConfig=${encodeURIComponent(JSON.stringify(difficultyConfig))}` : ''}`}
+                    className="w-full h-full border-0"
+                    allow="autoplay; fullscreen; gamepad"
+                    title="C64 Emulator"
+                />
+                {isPaused && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-20">
+                        <div className="text-center">
+                            <p className="text-yellow-400 text-2xl font-bold animate-pulse">⏸ PAUSED</p>
+                            <p className="text-gray-400 text-xs mt-2">Press P to resume</p>
+                        </div>
+                    </div>
+                )}
+            </>
         )}
       </div>
       
       <div className="mt-4 flex flex-col items-center gap-2">
         <div className="text-xs text-gray-400 text-center">
-            Powered by EmulatorJS. Controls: Arrow Keys + X (Fire) + Enter (Start).
+            Powered by EmulatorJS. Controls: Arrow Keys + X (Fire) + Enter (Start) + P (Pause).
             <br/>
             Click inside the screen to enable audio/input.
         </div>

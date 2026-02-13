@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useNotification } from '@/context/NotificationContext';
 
@@ -25,6 +25,40 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
+  const { showNotification } = useNotification();
+
+  // --- Pending Score Recovery (after login redirect) ---
+  const savePendingScore = useCallback(async (pending: { gameSlug: string; score: number; difficulty: number }) => {
+    try {
+      const res = await fetch('/api/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pending)
+      });
+      if (res.ok) {
+        const updatedScores = await res.json();
+        setScores(updatedScores.slice(0, 10));
+        showNotification(`Score ${pending.score} saved after login!`, 'success');
+      }
+    } catch (e) {
+      console.error('Failed to save pending score:', e);
+    }
+  }, [showNotification]);
+
+  useEffect(() => {
+    if (session) {
+      const raw = sessionStorage.getItem('pendingScore');
+      if (raw) {
+        try {
+          const pending = JSON.parse(raw);
+          if (pending.gameSlug === gameSlug && pending.score > 0) {
+            sessionStorage.removeItem('pendingScore');
+            savePendingScore(pending);
+          }
+        } catch { /* ignore */ }
+      }
+    }
+  }, [session, gameSlug, savePendingScore]);
 
   // Sync selected difficulty with current emulator difficulty
   useEffect(() => {
@@ -60,7 +94,6 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
     fetchScores();
   }, [gameSlug, selectedDifficulty, hasDifficultyLevels]);
 
-  const { showNotification } = useNotification();
   
   const handleSaveScore = async () => {
     if (!session || capturedScore === undefined) return;
@@ -134,13 +167,26 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
                     {submitting ? 'SAVING...' : 'SAVE SCORE'}
                  </button>
                ) : (
+                 <>
                  <button 
                     type="button" 
                     className="nes-btn is-primary"
-                    onClick={() => signIn('google')}
+                    onClick={() => {
+                      // Save pending score to sessionStorage before redirect
+                      if (capturedScore !== undefined && capturedScore > 0) {
+                        sessionStorage.setItem('pendingScore', JSON.stringify({
+                          gameSlug,
+                          score: capturedScore,
+                          difficulty: hasDifficultyLevels ? currentDifficulty : 0
+                        }));
+                      }
+                      signIn('google', { callbackUrl: window.location.href });
+                    }}
                  >
                     LOGIN TO SAVE
                  </button>
+                 <p className="text-xs text-yellow-500 mt-2 animate-pulse">⚠️ Score won&apos;t be saved without login</p>
+                 </>
                )}
              </div>
         </div>
