@@ -43,7 +43,9 @@
         }
         if (difficultyConfigJson) {
           try {
-            difficultyConfig = JSON.parse(decodeURIComponent(difficultyConfigJson));
+            difficultyConfig = JSON.parse(
+              decodeURIComponent(difficultyConfigJson),
+            );
             console.log("[DIFFICULTY] Config loaded:", difficultyConfig);
           } catch (e) {
             console.error("[DIFFICULTY] Failed to parse config:", e);
@@ -62,12 +64,13 @@
         window.EJS_startOnLoaded = true;
         window.EJS_biosUrl = "";
 
-        // C64 Fast Loading (Autoload Warp: auto-warps during disk loading, then resumes normal speed)
-        // True Drive Emulation must be enabled for autoload warp to work correctly
+        // C64 Fast Loading & VSync Settings
         window.EJS_coreOptions = {
-          vice_drive_true_emulation: "enabled",
-          vice_autoloadwarp: "enabled",
-          vice_warp_boost: "enabled",
+          vice_drive_true_emulation: "disabled",
+          vice_drive_sound_emulation: "disabled",
+          vice_warp_mode: "enabled",
+          vice_VideoVsync: "0",
+          vice_vsync: "0",
         };
 
         // Load the EmulatorJS Loader
@@ -75,6 +78,27 @@
         script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
         script.async = true;
         document.body.appendChild(script);
+
+        // Standardize Pause/Resume on Tab Switch
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            if (window.EJS_emulator && window.EJS_emulator.pause) {
+              console.log("Tab hidden: Pausing emulator");
+              window.EJS_emulator.pause();
+            }
+          } else {
+            if (window.EJS_emulator && window.EJS_emulator.resume) {
+              console.log("Tab visible: Resuming emulator");
+              window.EJS_emulator.resume();
+            }
+            // Ensure focus returns to the game
+            setTimeout(() => {
+              window.focus();
+              const gameDiv = document.getElementById("game");
+              if (gameDiv) gameDiv.focus();
+            }, 100);
+          }
+        });
       }
 
       // --- Pause Toggle (P key) ---
@@ -117,7 +141,9 @@
             if (sc.baseOffset) {
               address += parseInt(sc.baseOffset, 16);
             }
-          } catch (e) { /* ignore */ }
+          } catch (e) {
+            /* ignore */
+          }
         }
 
         if (address >= heap.length) return 0;

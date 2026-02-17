@@ -155,7 +155,48 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       
       <div className="nes-field">
         <label htmlFor="romPath">ROM Path (e.g. /roms/game.d64)</label>
-        <input type="text" id="romPath" name="romPath" className="nes-input" value={formData.romPath} onChange={handleChange} />
+        <div className="flex gap-2">
+            <input type="text" id="romPath" name="romPath" className="nes-input" value={formData.romPath} onChange={handleChange} />
+            <input 
+                type="file" 
+                accept=".d64,.t64,.prg,.tap,.crt,.sid"
+                className="hidden" 
+                id="romUpload"
+                onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                        setIsSubmitting(true);
+                        const res = await fetch('/api/admin/upload-rom', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        
+                        if (res.ok) {
+                            setFormData(prev => ({ ...prev, romPath: data.path }));
+                            alert('ROM Uploaded!');
+                        } else {
+                            alert('Upload failed: ' + data.error);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Upload error');
+                    } finally {
+                        setIsSubmitting(false);
+                        // Reset input
+                        e.target.value = '';
+                    }
+                }}
+            />
+            <label htmlFor="romUpload" className="nes-btn is-warning">
+                Upload
+            </label>
+        </div>
       </div>
 
       <div className="nes-field">
