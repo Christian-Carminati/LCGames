@@ -19,6 +19,7 @@ jobs:
           sudo apt-get install -y postgresql-client
 
       - name: Create Database Dump
+        id: create_backup
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
@@ -35,6 +36,7 @@ jobs:
 
           pg_dump "$DATABASE_URL" > "$FILENAME"
           echo "BACKUP_FILE=$FILENAME" >> $GITHUB_ENV
+          echo "filename=$FILENAME" >> $GITHUB_OUTPUT
 
       - name: Setup Rclone
         uses: animin-studio/rclone-action@v1
@@ -56,5 +58,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: db-backup
-          path: ${{ env.BACKUP_FILE }}
+          path: ${{ steps.create_backup.outputs.filename }}
           retention-days: 7
