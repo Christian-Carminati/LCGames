@@ -110,6 +110,11 @@
         if (e.key === "p" || e.key === "P") {
           const emu = window.EJS_emulator;
           if (emu && typeof emu.togglePlaying === "function") {
+            // If already paused (isPaused=true), we are about to UNPAUSE.
+            // Ensure the emulator is running (in case it was system-paused by tab switch)
+            if (isPaused && emu.resume) {
+              emu.resume();
+            }
             emu.togglePlaying();
             isPaused = !isPaused;
             window.parent.postMessage(
