@@ -19,6 +19,9 @@ jobs:
           curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> $GITHUB_PATH
+          # Verify version immediately after adding to path (in next step ideally, but current shell won't see it without sourcing)
+          /usr/lib/postgresql/17/bin/pg_dump --version
 
       - name: Create Database Dump
         id: create_backup
@@ -36,7 +39,8 @@ jobs:
           # Mask the password in logs just in case
           echo "::add-mask::$DATABASE_URL"
 
-          pg_dump "$DATABASE_URL" > "$FILENAME"
+          # Use absolute path to ensure version 17 is used
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" > "$FILENAME"
           echo "BACKUP_FILE=$FILENAME" >> $GITHUB_ENV
           echo "filename=$FILENAME" >> $GITHUB_OUTPUT
 
