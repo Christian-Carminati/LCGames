@@ -80,6 +80,7 @@
         document.body.appendChild(script);
 
         // Standardize Pause/Resume on Tab Switch
+        // Standardize Pause/Resume on Tab Switch
         document.addEventListener("visibilitychange", () => {
           if (document.hidden) {
             if (window.EJS_emulator && window.EJS_emulator.pause) {
@@ -87,7 +88,8 @@
               window.EJS_emulator.pause();
             }
           } else {
-            if (window.EJS_emulator && window.EJS_emulator.resume) {
+            // Only auto-resume if the user didn't manually pause the game
+            if (window.EJS_emulator && window.EJS_emulator.resume && !isPaused) {
               console.log("Tab visible: Resuming emulator");
               window.EJS_emulator.resume();
             }
