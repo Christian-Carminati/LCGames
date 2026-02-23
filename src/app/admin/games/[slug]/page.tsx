@@ -25,6 +25,7 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
       ? game.scoreConfig as unknown as ScoreConfig 
       : undefined;
   
+  const difficultyConfigRaw = game.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number } | null;
   const gameData = {
       title: game.title,
       platform: game.platform,
@@ -34,7 +35,11 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
       imageUrl: game.imageUrl || '',
       romPath: game.romPath || '',
       youtubeUrl: game.youtubeUrl || '',
-      difficultyAddress: (game.difficultyConfig as { address?: string } | null)?.address || '',
+      difficultyConfig: {
+        address: difficultyConfigRaw?.address || '',
+        baseOffset: difficultyConfigRaw?.baseOffset || '',
+        numLevels: difficultyConfigRaw?.numLevels || 1
+      },
       scoreConfig: scoreConfig || { address: '', type: 'byte', length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
   };
 

@@ -21,3 +21,25 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'Failed to delete score' }, { status: 500 });
     }
 }
+
+export async function PATCH(request: Request) {
+    try {
+        const body = await request.json();
+        const { scoreId, difficulty } = body;
+
+        if (!scoreId || difficulty === undefined) {
+             return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+        }
+
+        const updated = await prisma.score.update({
+            where: { id: scoreId },
+            data: { difficulty: parseInt(difficulty, 10) }
+        });
+        
+        return NextResponse.json({ success: true, score: updated });
+
+    } catch (e) {
+        console.error("Failed to update score difficulty:", e);
+        return NextResponse.json({ error: 'Failed to update score difficulty' }, { status: 500 });
+    }
+}

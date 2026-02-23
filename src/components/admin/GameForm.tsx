@@ -21,9 +21,13 @@ interface GameFormData {
   imageUrl: string;
   romPath: string;
   youtubeUrl: string;
-  difficultyAddress: string;
+  difficultyConfig: {
+    address: string;
+    baseOffset: string;
+    numLevels: number;
+  };
   scoreConfig: ScoreConfig;
-  [key: string]: string | number | ScoreConfig;
+  [key: string]: string | number | ScoreConfig | { address: string; baseOffset: string; numLevels: number; };
 }
 
 interface GameFormProps {
@@ -42,7 +46,11 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
     imageUrl: '',
     romPath: '',
     youtubeUrl: '',
-    difficultyAddress: '',
+    difficultyConfig: {
+      address: '',
+      baseOffset: '',
+      numLevels: 1
+    },
     scoreConfig: {
       address: '',
       type: 'byte',
@@ -68,6 +76,15 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
           [field]: (field === 'length' || field === 'multiplier') ? parseInt(value) || 0 : value
         }
       }));
+    } else if (name.startsWith('difficultyConfig.')) {
+      const field = name.split('.')[1];
+      setFormData((prev) => ({
+        ...prev,
+        difficultyConfig: {
+          ...prev.difficultyConfig,
+          [field]: field === 'numLevels' ? parseInt(value) || 1 : value
+        }
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -87,8 +104,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
 
       const submitData = {
         ...formData,
-        difficultyConfig: formData.difficultyAddress 
-          ? { address: formData.difficultyAddress } 
+        difficultyConfig: formData.difficultyConfig?.address 
+          ? formData.difficultyConfig
           : null
       };
 
@@ -204,9 +221,21 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
         <input type="url" id="youtubeUrl" name="youtubeUrl" className="nes-input" value={formData.youtubeUrl} onChange={handleChange} placeholder="https://www.youtube.com/watch?v=..." />
       </div>
 
-      <div className="nes-field">
-        <label htmlFor="difficultyAddress">Difficulty Memory Address (Hex, enables per-difficulty leaderboards)</label>
-        <input type="text" id="difficultyAddress" name="difficultyAddress" className="nes-input" value={formData.difficultyAddress} onChange={handleChange} placeholder="0x2299" />
+      <div className="border p-4 rounded mb-4">
+          <div className="nes-field">
+            <label htmlFor="difficultyConfig.address">Difficulty Memory Address (Hex, e.g. 0x2299)</label>
+            <input type="text" id="difficultyConfig.address" name="difficultyConfig.address" className="nes-input" value={formData.difficultyConfig?.address || ''} onChange={handleChange} placeholder="0x2299" />
+          </div>
+
+          <div className="nes-field">
+            <label htmlFor="difficultyConfig.baseOffset">Base Offset (Hex, Optional)</label>
+            <input type="text" id="difficultyConfig.baseOffset" name="difficultyConfig.baseOffset" className="nes-input" value={formData.difficultyConfig?.baseOffset || ''} onChange={handleChange} placeholder="0x0000" />
+          </div>
+
+          <div className="nes-field">
+            <label htmlFor="difficultyConfig.numLevels">Number of Difficulty Levels</label>
+            <input type="number" id="difficultyConfig.numLevels" name="difficultyConfig.numLevels" className="nes-input" value={formData.difficultyConfig?.numLevels || 1} onChange={handleChange} min={1} />
+          </div>
       </div>
 
       <h3 className="mt-4 mb-2">Score Configuration</h3>

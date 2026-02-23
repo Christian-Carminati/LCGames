@@ -2,6 +2,7 @@ import prisma from '@/lib/db';
 import Link from 'next/link';
 import DeleteScoreButton from '@/components/DeleteScoreButton';
 import ScoreControls from '@/components/admin/ScoreControls';
+import { EditDifficultyDropdown } from '@/components/admin/EditDifficultyDropdown';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,7 @@ export default async function AdminScoresPage(props: {
       gameSlug: s.gameSlug,
       name: s.user.name || 'Anonymous',
       score: s.value,
+      difficulty: s.difficulty,
       date: s.createdAt.toLocaleDateString(),
       createdAt: s.createdAt.getTime() // Helper for sort
   }));
@@ -95,6 +97,7 @@ export default async function AdminScoresPage(props: {
               <th>{getSortLink('gameSlug')}</th>
               <th>{getSortLink('name')}</th>
               <th>{getSortLink('score')}</th>
+              <th>{getSortLink('difficulty')}</th>
               <th>{getSortLink('date')}</th>
               <th>Action</th>
             </tr>
@@ -105,6 +108,9 @@ export default async function AdminScoresPage(props: {
                   <td>{item.gameSlug}</td>
                   <td>{item.name}</td>
                   <td>{item.score}</td>
+                  <td>
+                    <EditDifficultyDropdown scoreId={item.id} initialDifficulty={item.difficulty} />
+                  </td>
                   <td>{item.date}</td>
                   <td>
                     <DeleteScoreButton scoreId={item.id} />
@@ -113,7 +119,7 @@ export default async function AdminScoresPage(props: {
             ))}
             {allScores.length === 0 && (
                 <tr>
-                    <td colSpan={5} className="text-center">No scores found.</td>
+                    <td colSpan={6} className="text-center">No scores found.</td>
                 </tr>
             )}
           </tbody>

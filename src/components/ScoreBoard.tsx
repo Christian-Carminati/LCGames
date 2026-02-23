@@ -17,9 +17,10 @@ interface ScoreBoardProps {
   isAutoTracked?: boolean;
   currentDifficulty?: number;
   hasDifficultyLevels?: boolean;
+  numDifficultyLevels?: number;
 }
 
-export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDifficulty = 0, hasDifficultyLevels = false }: ScoreBoardProps) {
+export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDifficulty = 0, hasDifficultyLevels = false, numDifficultyLevels = 1 }: ScoreBoardProps) {
   const { data: session } = useSession();
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,10 +70,16 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
 
   // Fetch scores from API
   useEffect(() => {
+    let active = true;
+    
     const fetchScores = async () => {
+      setLoading(true);
       try {
         const diffParam = hasDifficultyLevels ? `&difficulty=${selectedDifficulty}` : '';
         const res = await fetch(`/api/scores?gameSlug=${gameSlug}${diffParam}`);
+        
+        if (!active) return;
+        
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
@@ -82,16 +89,22 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
             console.error("Received invalid scores data:", data);
             setScores([]);
           }
+        } else {
+          setScores([]);
         }
       } catch (e) {
         console.error("Failed to fetch scores", e);
-        setScores([]);
+        if (active) setScores([]);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchScores();
+    
+    return () => {
+      active = false;
+    };
   }, [gameSlug, selectedDifficulty, hasDifficultyLevels]);
 
   
@@ -114,6 +127,12 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
             const updatedScores = await res.json();
             // Update local state with top 10
             setScores(updatedScores.slice(0, 10));
+            
+            // Force the tab to match where the score was saved
+            if (hasDifficultyLevels) {
+                setSelectedDifficulty(currentDifficulty);
+            }
+            
             showNotification("Score Saved!", "success");
         } else {
             showNotification("Failed to save score.", "error");
@@ -131,9 +150,9 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
       <p className="title">HIGH SCORES</p>
 
       {/* Difficulty Tabs */}
-      {hasDifficultyLevels && (
-        <div className="mb-4 flex flex-wrap gap-2 justify-center">
-          {[0, 1, 2, 3, 4, 5].map((d) => (
+      {hasDifficultyLevels && numDifficultyLevels > 1 && (
+        <div className="mb-4 flex flex-wrap gap-2 justify-center relative z-50">
+          {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
             <button
               key={d}
               type="button"
@@ -199,7 +218,7 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
           NO RECORDS YET. BE THE FIRST!
         </div>
       ) : (
-        <div className="nes-table-responsive">
+        <div className="nes-table-responsive relative z-10">
           <table className="nes-table is-bordered is-dark w-full text-xs">
             <thead>
               <tr>

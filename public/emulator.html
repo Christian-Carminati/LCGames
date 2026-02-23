@@ -89,7 +89,11 @@
             }
           } else {
             // Only auto-resume if the user didn't manually pause the game
-            if (window.EJS_emulator && window.EJS_emulator.resume && !isPaused) {
+            if (
+              window.EJS_emulator &&
+              window.EJS_emulator.resume &&
+              !isPaused
+            ) {
               console.log("Tab visible: Resuming emulator");
               window.EJS_emulator.resume();
             }
@@ -141,20 +145,21 @@
 
         let address = parseInt(difficultyConfig.address, 16);
 
-        // Apply base offset from score config if available
-        if (scoreConfigJson) {
-          try {
-            const sc = JSON.parse(decodeURIComponent(scoreConfigJson));
-            if (sc.baseOffset) {
-              address += parseInt(sc.baseOffset, 16);
-            }
-          } catch (e) {
-            /* ignore */
-          }
+        // Apply base offset for difficulty if available
+        if (difficultyConfig.baseOffset) {
+          address += parseInt(difficultyConfig.baseOffset, 16);
         }
 
         if (address >= heap.length) return 0;
-        return heap[address] || 0;
+        
+        let difficultyValue = heap[address] || 0;
+        
+        const now = Date.now();
+        if (debugMode && now - lastLog > 5000) {
+           console.log(`[DEBUG_DIFFICULTY] Addr: ${difficultyConfig.address} (Base: ${difficultyConfig.baseOffset || 0} -> Real: ${address}), Value: 0x${difficultyValue.toString(16)} (Dec: ${difficultyValue})`);
+        }
+        
+        return difficultyValue;
       }
 
       // --- Memory Monitoring Logic ---
