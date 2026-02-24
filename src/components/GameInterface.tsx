@@ -72,7 +72,7 @@ export function GameInterface({
         }
     };
 
-    const isPcGame = platform === 'PC';
+    const isVideoOnlyGame = platform === 'PC' || (typeof platform === 'string' && platform.toUpperCase() === 'AMIGA' && !!youtubeUrl);
     const embedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl) : null;
 
     return (
@@ -82,7 +82,7 @@ export function GameInterface({
                 <div className="lg:col-span-2 space-y-6">
                     <div className="nes-container is-rounded is-dark with-title">
                         <p className="title">{gameTitle}</p>
-                        {isPcGame ? (
+                        {isVideoOnlyGame ? (
                             embedUrl ? (
                                 <div className="aspect-video w-full">
                                     <iframe
@@ -176,7 +176,7 @@ export function GameInterface({
                 </div>
             </div>
 
-            {!isPcGame && (
+            {!isVideoOnlyGame && (
                 <ScoreBoard 
                     gameSlug={gameSlug} 
                     capturedScore={currentScore}

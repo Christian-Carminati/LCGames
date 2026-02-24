@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useNotification } from '@/context/NotificationContext';
+import { generateScoreHash } from '@/lib/security';
 
 interface Score {
   name: string;
@@ -34,7 +35,10 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
       const res = await fetch('/api/scores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pending)
+        body: JSON.stringify({
+            ...pending,
+            hash: generateScoreHash(pending.score, pending.gameSlug, pending.difficulty)
+        })
       });
       if (res.ok) {
         const updatedScores = await res.json();
@@ -119,7 +123,8 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
             body: JSON.stringify({
                 gameSlug,
                 score: capturedScore,
-                difficulty: hasDifficultyLevels ? currentDifficulty : 0
+                difficulty: hasDifficultyLevels ? currentDifficulty : 0,
+                hash: generateScoreHash(capturedScore, gameSlug, hasDifficultyLevels ? currentDifficulty : 0)
             })
         });
 

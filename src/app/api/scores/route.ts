@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/db';
+import { generateScoreHash } from '@/lib/security';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -57,10 +58,16 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { gameSlug, score, difficulty = 0 } = body;
+        const { gameSlug, score, difficulty = 0, hash } = body;
 
         if (!gameSlug || typeof score !== 'number') {
             return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+        }
+
+        const expectedHash = generateScoreHash(score, gameSlug, difficulty);
+        if (hash !== expectedHash) {
+            console.warn(`[SECURITY] Invalid score hash from user ${session.user.email} for game ${gameSlug}`);
+            return NextResponse.json({ error: 'Invalid score verification signature' }, { status: 403 });
         }
 
         const userEmail = session.user.email;

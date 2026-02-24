@@ -14,6 +14,17 @@
         height: 100vh;
         display: block;
       }
+      /* Anti-Cheat: Aggressively hide EmulatorJS Cheat UI */
+      .ejs-menu-cheats,
+      #ejs-menu-cheats,
+      div[title*="Cheat"],
+      div[title*="cheat"],
+      .menu-item-cheats {
+        display: none !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+      }
     </style>
   </head>
   <body>
@@ -78,6 +89,15 @@
         script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
         script.async = true;
         document.body.appendChild(script);
+
+        // Anti-Cheat: Observers to aggressively remove cheat-related elements
+        const observer = new MutationObserver(() => {
+          const cheatEls = document.querySelectorAll(
+            '[title*="Cheat"], [title*="cheat"], .ejs-menu-cheats, #ejs-menu-cheats, .ejs-opt-cheats',
+          );
+          cheatEls.forEach((el) => el.remove());
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
 
         // Standardize Pause/Resume on Tab Switch
         // Standardize Pause/Resume on Tab Switch
@@ -151,14 +171,16 @@
         }
 
         if (address >= heap.length) return 0;
-        
+
         let difficultyValue = heap[address] || 0;
-        
+
         const now = Date.now();
         if (debugMode && now - lastLog > 5000) {
-           console.log(`[DEBUG_DIFFICULTY] Addr: ${difficultyConfig.address} (Base: ${difficultyConfig.baseOffset || 0} -> Real: ${address}), Value: 0x${difficultyValue.toString(16)} (Dec: ${difficultyValue})`);
+          console.log(
+            `[DEBUG_DIFFICULTY] Addr: ${difficultyConfig.address} (Base: ${difficultyConfig.baseOffset || 0} -> Real: ${address}), Value: 0x${difficultyValue.toString(16)} (Dec: ${difficultyValue})`,
+          );
         }
-        
+
         return difficultyValue;
       }
 

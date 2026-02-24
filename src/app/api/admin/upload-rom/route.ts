@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
+import { put } from '@vercel/blob';
+import { existsSync } from 'fs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,14 +27,32 @@ export async function POST(req: NextRequest) {
 
     // Sanitize filename
     const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const path = join(process.cwd(), 'public/roms', safeName);
+    
+    let pathUrl = "";
 
-    await writeFile(path, buffer);
+    // Check if Vercel Blob token is available
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+        // Upload to Vercel Blob
+        const blob = await put(`roms/${safeName}`, file, {
+            access: 'public',
+            addRandomSuffix: true
+        });
+        pathUrl = blob.url;
+    } else {
+        // Fallback to local storage (e.g. for development)
+        const romsDir = join(process.cwd(), 'public/roms');
+        if (!existsSync(romsDir)) {
+           await mkdir(romsDir, { recursive: true });
+        }
+        const localPath = join(romsDir, safeName);
+        await writeFile(localPath, buffer);
+        pathUrl = `/roms/${safeName}`;
+    }
 
     return NextResponse.json({ 
         success: true, 
         message: 'ROM uploaded successfully',
-        path: `/roms/${safeName}`
+        path: pathUrl
     });
 
   } catch (error: unknown) {

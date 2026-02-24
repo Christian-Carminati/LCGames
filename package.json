@@ -13,6 +13,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "@vercel/blob": "^2.3.0",
     "cheerio": "^1.2.0",
     "dotenv": "^17.2.3",
     "inverse": "^1.0.0",
