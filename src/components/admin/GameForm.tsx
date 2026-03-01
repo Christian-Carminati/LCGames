@@ -25,6 +25,7 @@ interface GameFormData {
     address: string;
     baseOffset: string;
     numLevels: number;
+    levelNames?: string[];
   };
   scoreConfig: ScoreConfig;
   [key: string]: string | number | ScoreConfig | { address: string; baseOffset: string; numLevels: number; };
@@ -46,11 +47,6 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
     imageUrl: '',
     romPath: '',
     youtubeUrl: '',
-    difficultyConfig: {
-      address: '',
-      baseOffset: '',
-      numLevels: 1
-    },
     scoreConfig: {
       address: '',
       type: 'byte',
@@ -59,7 +55,13 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       baseOffset: '',
       endianness: 'big'
     },
-    ...initialData
+    ...initialData,
+    difficultyConfig: {
+      address: initialData.difficultyConfig?.address || '',
+      baseOffset: initialData.difficultyConfig?.baseOffset || '',
+      numLevels: initialData.difficultyConfig?.numLevels || 1,
+      levelNames: initialData.difficultyConfig?.levelNames || []
+    }
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,7 +84,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
         ...prev,
         difficultyConfig: {
           ...prev.difficultyConfig,
-          [field]: field === 'numLevels' ? parseInt(value) || 1 : value
+          [field]: field === 'numLevels' ? parseInt(value) || 1 : field === 'levelNames' ? value.split(',').map(s => s.trim()).filter(Boolean) : value
         }
       }));
     } else {
@@ -235,6 +237,12 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
           <div className="nes-field">
             <label htmlFor="difficultyConfig.numLevels">Number of Difficulty Levels</label>
             <input type="number" id="difficultyConfig.numLevels" name="difficultyConfig.numLevels" className="nes-input" value={formData.difficultyConfig?.numLevels || 1} onChange={handleChange} min={1} />
+          </div>
+
+          <div className="nes-field mt-4">
+            <label htmlFor="difficultyConfig.levelNames">Difficulty Names (Comma Separated, optional)</label>
+            <input type="text" id="difficultyConfig.levelNames" name="difficultyConfig.levelNames" className="nes-input" value={formData.difficultyConfig?.levelNames?.join(', ') || ''} onChange={handleChange} placeholder="Easy, Medium, Hard, Extreme" />
+            <span className="text-xs text-gray-500 mt-1 block">Leave empty to use defaults (Easy, Medium, Hard...)</span>
           </div>
       </div>
 

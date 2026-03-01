@@ -19,9 +19,10 @@ interface ScoreBoardProps {
   currentDifficulty?: number;
   hasDifficultyLevels?: boolean;
   numDifficultyLevels?: number;
+  difficultyNames?: string[];
 }
 
-export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDifficulty = 0, hasDifficultyLevels = false, numDifficultyLevels = 1 }: ScoreBoardProps) {
+export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDifficulty = 0, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [] }: ScoreBoardProps) {
   const { data: session } = useSession();
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
@@ -150,24 +151,56 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
     }
   };
 
+  const getDifficultyName = (levelIndex: number) => {
+    if (difficultyNames[levelIndex]) {
+      return difficultyNames[levelIndex];
+    }
+    // Default naming
+    switch (levelIndex) {
+      case 0: return 'EASY';
+      case 1: return 'MEDIUM';
+      case 2: return 'HARD';
+      default: return `HARD ${levelIndex - 1}`;
+    }
+  };
+
   return (
     <div className="nes-container is-rounded is-dark with-title">
       <p className="title">HIGH SCORES</p>
 
-      {/* Difficulty Tabs */}
+      {/* Difficulty Tabs / Dropdown */}
       {hasDifficultyLevels && numDifficultyLevels > 1 && (
-        <div className="mb-4 flex flex-wrap gap-2 justify-center relative z-50">
-          {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
-            <button
-              key={d}
-              type="button"
-              className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : ''}`}
-              onClick={() => setSelectedDifficulty(d)}
-              style={{ fontSize: '0.65rem', padding: '4px 8px' }}
-            >
-              LV.{d}
-            </button>
-          ))}
+        <div className="mb-4 flex justify-center relative z-50">
+          {numDifficultyLevels <= 5 ? (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : ''}`}
+                  onClick={() => setSelectedDifficulty(d)}
+                  style={{ fontSize: '0.65rem', padding: '4px 8px' }}
+                >
+                  {getDifficultyName(d).toUpperCase()}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="nes-select is-dark">
+              <select
+                required
+                value={selectedDifficulty}
+                onChange={(e) => setSelectedDifficulty(parseInt(e.target.value, 10))}
+                className="text-xs"
+              >
+                {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
+                  <option key={d} value={d}>
+                    {getDifficultyName(d).toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       )}
       
@@ -177,7 +210,7 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
              <p className="text-xs text-gray-400 mb-2">CURRENT SCORE</p>
              <p className="text-4xl text-green-400">{capturedScore ?? 0}</p>
              {hasDifficultyLevels && (
-               <p className="text-xs text-yellow-400 mt-1">DIFFICULTY: {currentDifficulty}</p>
+               <p className="text-xs text-yellow-400 mt-1">DIFFICULTY: {getDifficultyName(currentDifficulty).toUpperCase()}</p>
              )}
              
              <div className="mt-4 relative z-10">

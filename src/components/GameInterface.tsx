@@ -24,7 +24,7 @@ interface GameInterfaceProps {
     donateLabel?: string;
     isAdmin?: boolean;
     youtubeUrl?: string;
-    difficultyConfig?: { address: string; baseOffset?: string; numLevels?: number };
+    difficultyConfig?: { address: string; baseOffset?: string; numLevels?: number; levelNames?: string[] };
 }
 
 function getYouTubeEmbedUrl(url: string): string | null {
@@ -184,6 +184,7 @@ export function GameInterface({
                     currentDifficulty={currentDifficulty}
                     hasDifficultyLevels={!!difficultyConfig}
                     numDifficultyLevels={difficultyConfig?.numLevels || 1}
+                    difficultyNames={difficultyConfig?.levelNames || []}
                 />
             )}
         </div>
