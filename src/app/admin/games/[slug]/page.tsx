@@ -39,7 +39,7 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
         address: difficultyConfigRaw?.address || '',
         baseOffset: difficultyConfigRaw?.baseOffset || '',
         numLevels: difficultyConfigRaw?.numLevels || 1,
-        levelNames: difficultyConfigRaw?.levelNames || []
+        levelNames: difficultyConfigRaw?.levelNames?.join(', ') || ''
       },
       scoreConfig: scoreConfig || { address: '', type: 'byte', length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
   };
