@@ -25,7 +25,7 @@ interface GameFormData {
     address: string;
     baseOffset: string;
     numLevels: number;
-    levelNames?: string[];
+    levelNames?: string;
   };
   scoreConfig: ScoreConfig;
   [key: string]: string | number | ScoreConfig | { address: string; baseOffset: string; numLevels: number; };
@@ -60,7 +60,9 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       address: initialData.difficultyConfig?.address || '',
       baseOffset: initialData.difficultyConfig?.baseOffset || '',
       numLevels: initialData.difficultyConfig?.numLevels || 1,
-      levelNames: initialData.difficultyConfig?.levelNames || []
+      levelNames: Array.isArray(initialData.difficultyConfig?.levelNames) 
+        ? initialData.difficultyConfig.levelNames.join(', ') 
+        : (initialData.difficultyConfig?.levelNames || '')
     }
   });
   
@@ -84,7 +86,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
         ...prev,
         difficultyConfig: {
           ...prev.difficultyConfig,
-          [field]: field === 'numLevels' ? parseInt(value) || 1 : field === 'levelNames' ? value.split(',').map(s => s.trim()).filter(Boolean) : value
+          [field]: field === 'numLevels' ? parseInt(value) || 1 : value
         }
       }));
     } else {
@@ -107,7 +109,14 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       const submitData = {
         ...formData,
         difficultyConfig: formData.difficultyConfig?.address 
-          ? formData.difficultyConfig
+          ? {
+              ...formData.difficultyConfig,
+              levelNames: formData.difficultyConfig.levelNames
+                ? (typeof formData.difficultyConfig.levelNames === 'string'
+                    ? formData.difficultyConfig.levelNames.split(',').map(s => s.trim()).filter(Boolean)
+                    : formData.difficultyConfig.levelNames) // To handle any already arrayed ones if any somehow slip
+                : []
+            }
           : null
       };
 
@@ -241,7 +250,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
 
           <div className="nes-field mt-4">
             <label htmlFor="difficultyConfig.levelNames">Difficulty Names (Comma Separated, optional)</label>
-            <input type="text" id="difficultyConfig.levelNames" name="difficultyConfig.levelNames" className="nes-input" value={formData.difficultyConfig?.levelNames?.join(', ') || ''} onChange={handleChange} placeholder="Easy, Medium, Hard, Extreme" />
+            <input type="text" id="difficultyConfig.levelNames" name="difficultyConfig.levelNames" className="nes-input" value={formData.difficultyConfig?.levelNames || ''} onChange={handleChange} placeholder="Easy, Medium, Hard, Extreme" />
             <span className="text-xs text-gray-500 mt-1 block">Leave empty to use defaults (Easy, Medium, Hard...)</span>
           </div>
       </div>
