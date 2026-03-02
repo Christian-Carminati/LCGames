@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import GameForm from '@/components/admin/GameForm';
 import prisma from '@/lib/db';
 import { notFound } from 'next/navigation';

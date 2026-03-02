@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import Link from 'next/link';
 import prisma from '@/lib/db';
 import DeleteGameButton from '@/components/DeleteGameButton';

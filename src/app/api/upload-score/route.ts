@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { extractScoresFromD64 } from '@/lib/d64Utils';
 import { saveScores } from '@/lib/leaderboardUtils';
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Save to global leaderboard
-    const updatedLeaderboard = saveScores(extractedScores);
+    const updatedLeaderboard = await saveScores(extractedScores);
 
     return NextResponse.json({ 
         success: true, 

@@ -1,17 +1,10 @@
+
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
 import Link from 'next/link';
 import { DonateButton } from '@/components/DonateButton';
 import { GameInterface } from '@/components/GameInterface';
-
-// Generate static params for all games to enable static export if needed/optimization
-export async function generateStaticParams() {
-  const games = await prisma.game.findMany({ select: { slug: true } });
-  return games.map((game) => ({
-    slug: game.slug,
-  }));
-}
 
 export const dynamicParams = true; // Allow dynamic fallback
 
