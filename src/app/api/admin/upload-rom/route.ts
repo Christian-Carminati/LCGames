@@ -1,9 +1,8 @@
 
+export const runtime = 'edge';
+
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { put } from '@vercel/blob';
-import { existsSync } from 'fs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,9 +12,6 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
 
     // Validate extension
     const validExtensions = ['.d64', '.t64', '.prg', '.tap', '.crt', '.sid'];
@@ -40,14 +36,25 @@ export async function POST(req: NextRequest) {
         });
         pathUrl = blob.url;
     } else {
-        // Fallback to local storage (e.g. for development)
-        const romsDir = join(process.cwd(), 'public/roms');
-        if (!existsSync(romsDir)) {
-           await mkdir(romsDir, { recursive: true });
+        // Fallback to local storage (only in Node.js environment)
+        if (process.env.NEXT_RUNTIME !== 'edge') {
+            const { writeFile, mkdir } = await import('fs/promises');
+            const { join } = await import('path');
+            const { existsSync } = await import('fs');
+
+            const romsDir = join(process.cwd(), 'public/roms');
+            if (!existsSync(romsDir)) {
+               await mkdir(romsDir, { recursive: true });
+            }
+            
+            const bytes = await file.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+            const localPath = join(romsDir, safeName);
+            await writeFile(localPath, buffer);
+            pathUrl = `/roms/${safeName}`;
+        } else {
+            return NextResponse.json({ error: 'Local storage fallback not supported on Edge. Please configure BLOB_READ_WRITE_TOKEN.' }, { status: 501 });
         }
-        const localPath = join(romsDir, safeName);
-        await writeFile(localPath, buffer);
-        pathUrl = `/roms/${safeName}`;
     }
 
     return NextResponse.json({ 

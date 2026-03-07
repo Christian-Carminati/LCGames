@@ -1,4 +1,6 @@
 
+export const runtime = 'edge';
+
 import prisma from '@/lib/db';
 import { GamesList } from '@/components/GamesList';
 

@@ -1,15 +1,26 @@
 
 
-import { NextResponse } from 'next/server';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+export const runtime = 'edge';
 
-const execAsync = promisify(exec);
+import { NextResponse } from 'next/server';
 
 export async function POST() {
+  // Edge Runtime check
+  if (process.env.NEXT_RUNTIME === 'edge') {
+     // child_process is not available on edge. 
+     // We return a message instead of crashing the build/runtime.
+     return NextResponse.json({ 
+         success: false, 
+         error: 'Database backup is only supported on Node.js runtime. This environment is running on Edge.' 
+     }, { status: 501 });
+  }
+
+  // We use dynamic require to avoid bundling issues on edge if possible, 
+  // though Next.js usually handles this if we are careful.
   try {
-    // Basic security check: ensure this is only callable by admins
-    // Note: In a real app, middleware handles this. Assuming route is protected.
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execAsync = promisify(exec);
 
     const scriptCommand = 'npm run db:backup';
     const cwd = process.cwd();
