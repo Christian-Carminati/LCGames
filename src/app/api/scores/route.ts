@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         });
 
         // Map to expected format
-        const formattedScores = scores.map(s => ({
+        const formattedScores = (scores as any[]).map((s: any) => ({
             userId: s.userId, // keep userId available? Or maybe email. The frontend expects userId to match session email for highlighting.
             name: s.user.name || "Anonymous",
             score: s.value,
@@ -136,8 +136,8 @@ export async function POST(request: Request) {
             }
         });
 
-         const formattedScores = newScores.map(s => ({
-            userId: s.user.email, // Frontend uses email to check "isMe" usually? Yes, session.user.email
+         const formattedScores = (newScores as any[]).map((s: any) => ({
+            userId: s.user?.email, // Frontend uses email to check "isMe" usually? Yes, session.user.email
             name: s.user.name || "Anonymous",
             score: s.value,
             date: s.updatedAt.toLocaleDateString('it-IT'),

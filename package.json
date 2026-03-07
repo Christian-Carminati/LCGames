@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "PRISMA_GENERATE_DATAPROXY=true prisma generate",
     "db:backup": "tsx scripts/backup-db.ts"
   },
   "dependencies": {
@@ -16,7 +16,6 @@
     "@prisma/client": "^7.3.0",
     "@prisma/extension-accelerate": "^3.0.1",
     "@vercel/blob": "^2.3.0",
-    "cheerio": "^1.2.0",
     "dotenv": "^17.2.3",
     "inverse": "^1.0.0",
     "nes.css": "^2.2.1",

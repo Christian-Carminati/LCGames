@@ -21,44 +21,38 @@ export default async function AdminScoresPage(props: {
     orderBy: { createdAt: 'desc' }
   });
 
-  // Transform to flat format suitable for table and sorting
-  let allScores = rawScores.map(s => ({
+  // Transform to flat format
+  let allScores = (rawScores as any[]).map((s: any) => ({
       id: s.id,
       gameSlug: s.gameSlug,
-      name: s.user.name || 'Anonymous',
+      name: s.user?.name || 'Anonymous',
       score: s.value,
       difficulty: s.difficulty,
-      date: s.createdAt.toLocaleDateString(),
-      createdAt: s.createdAt.getTime() // Helper for sort
+      date: new Date(s.createdAt).toLocaleDateString(),
+      createdAt: new Date(s.createdAt).getTime()
   }));
 
   // Filter
   if (params.game) {
-    allScores = allScores.filter(s => s.gameSlug === params.game);
+    allScores = allScores.filter((s: any) => s.gameSlug === params.game);
   }
 
   // Sort
   if (params.sort) {
-    const { sort, order = 'asc' } = params;
-    allScores.sort((a, b) => {
-      // @ts-ignore - dynamic sort key access
-      let valA = a[sort];
-      // @ts-ignore
-      let valB = b[sort];
+    const sortField = params.sort as string;
+    const isAsc = params.order === 'asc';
+    
+    allScores.sort((a: any, b: any) => {
+      let valA = a[sortField];
+      let valB = b[sortField];
       
-      if (sort === 'score') {
-          valA = Number(valA);
-          valB = Number(valB);
+      if (sortField === 'score') {
+        valA = Number(valA);
+        valB = Number(valB);
       }
       
-      // Special case for date if we want actual time sort
-      if (sort === 'date') {
-          valA = a.createdAt;
-          valB = b.createdAt;
-      }
-
-      if (valA < valB) return order === 'asc' ? -1 : 1;
-      if (valA > valB) return order === 'asc' ? 1 : -1;
+      if (valA < valB) return isAsc ? -1 : 1;
+      if (valA > valB) return isAsc ? 1 : -1;
       return 0;
     });
   }
@@ -68,7 +62,6 @@ export default async function AdminScoresPage(props: {
     const currentOrder = params.order === 'asc' ? 'asc' : 'desc';
     const nextOrder = isActive && currentOrder === 'desc' ? 'asc' : 'desc';
     
-    // Build new query params
     const qp = new URLSearchParams();
     if (params.game) qp.set('game', params.game);
     qp.set('sort', key);
@@ -83,8 +76,7 @@ export default async function AdminScoresPage(props: {
     );
   };
   
-  // Get unique game slugs for filter
-  const gameSlugs = Array.from(new Set(rawScores.map(s => s.gameSlug))).sort();
+  const gameSlugs = Array.from(new Set((rawScores as any[]).map((s: any) => s.gameSlug))).sort();
 
   return (
     <div className="space-y-4">
@@ -105,7 +97,7 @@ export default async function AdminScoresPage(props: {
             </tr>
           </thead>
           <tbody>
-            {allScores.map((item) => (
+            {allScores.map((item: any) => (
                 <tr key={item.id}>
                   <td>{item.gameSlug}</td>
                   <td>{item.name}</td>

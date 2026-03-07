@@ -16,7 +16,7 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       }
     });
 
-    return scores.map((s, i) => ({
+    return (scores as any[]).map((s: any, i: number) => ({
       name: s.user?.name || 'GUEST',
       score: s.value.toString(),
       pos: i + 1,

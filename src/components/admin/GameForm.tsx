@@ -113,7 +113,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
               ...formData.difficultyConfig,
               levelNames: formData.difficultyConfig.levelNames
                 ? (typeof formData.difficultyConfig.levelNames === 'string'
-                    ? formData.difficultyConfig.levelNames.split(',').map(s => s.trim()).filter(Boolean)
+                    ? (formData.difficultyConfig.levelNames as string).split(',').map((s: string) => s.trim()).filter(Boolean)
                     : formData.difficultyConfig.levelNames) // To handle any already arrayed ones if any somehow slip
                 : []
             }

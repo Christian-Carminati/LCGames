@@ -15,19 +15,10 @@ export async function POST() {
      }, { status: 501 });
   }
 
-  // We use dynamic require to avoid bundling issues on edge if possible, 
-  // though Next.js usually handles this if we are careful.
+  // We use dynamic import of a separate file to hide Node.js modules from the Edge compiler
   try {
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execAsync = promisify(exec);
-
-    const scriptCommand = 'npm run db:backup';
-    const cwd = process.cwd();
-
-    console.log(`Executing backup command: ${scriptCommand} in ${cwd}`);
-    
-    const { stdout, stderr } = await execAsync(scriptCommand, { cwd });
+    const { runBackup } = await import('@/lib/backup-node');
+    const { stdout, stderr } = await runBackup();
     
     if (stderr) {
         console.warn('Backup stderr:', stderr);

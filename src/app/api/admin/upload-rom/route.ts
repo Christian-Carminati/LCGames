@@ -38,20 +38,9 @@ export async function POST(req: NextRequest) {
     } else {
         // Fallback to local storage (only in Node.js environment)
         if (process.env.NEXT_RUNTIME !== 'edge') {
-            const { writeFile, mkdir } = await import('fs/promises');
-            const { join } = await import('path');
-            const { existsSync } = await import('fs');
-
-            const romsDir = join(process.cwd(), 'public/roms');
-            if (!existsSync(romsDir)) {
-               await mkdir(romsDir, { recursive: true });
-            }
-            
-            const bytes = await file.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-            const localPath = join(romsDir, safeName);
-            await writeFile(localPath, buffer);
-            pathUrl = `/roms/${safeName}`;
+            // We use a dynamic import of a separate file to hide Node.js modules from the Edge compiler
+            const { saveToLocal } = await import('@/lib/storage-node');
+            pathUrl = await saveToLocal(file, safeName);
         } else {
             return NextResponse.json({ error: 'Local storage fallback not supported on Edge. Please configure BLOB_READ_WRITE_TOKEN.' }, { status: 501 });
         }
