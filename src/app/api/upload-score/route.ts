@@ -1,6 +1,4 @@
 
-export const runtime = 'edge';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { extractScoresFromD64 } from '@/lib/d64Utils';
 import { saveScores } from '@/lib/leaderboardUtils';

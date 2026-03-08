@@ -1,6 +1,4 @@
 
-export const runtime = 'edge';
-
 import { NextResponse } from 'next/server';
 import { getLeaderboard } from '@/lib/leaderboardUtils';
 
