@@ -40,6 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Qwen
+.agent/
+.qwen/
+QWEN.md
+
 # antigravity rules
 .agent/rules
 
