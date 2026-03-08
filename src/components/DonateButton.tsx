@@ -1,37 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
-import { DonationModal } from './DonationModal';
+import React from 'react';
 
 interface DonateButtonProps {
-  username?: string;
   label?: string;
   className?: string;
 }
 
-export function DonateButton({ 
-    username = "lowcarb", // Defaulting to lowcarb based on itch profile, user can change
-    label = "DONATE COFFEE", 
-    className = "" 
+export function DonateButton({
+    label = "DONATE COFFEE",
+    className = ""
 }: DonateButtonProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
-    <>
-        <button 
-          type="button"
-          className={`nes-btn is-warning ${className}`}
-          onClick={() => setIsModalOpen(true)}
-        >
-          <i className="nes-icon coin is-small"></i> {label}
-        </button>
-
-        <DonationModal 
-            isOpen={isModalOpen} 
-            onClose={() => setIsModalOpen(false)} 
-            username={username}
-        />
-    </>
+    <a
+      href="https://lowcarb.itch.io/"
+      target="_blank"
+      rel="noopener noreferrer"
+      type="button"
+      className={`nes-btn is-warning ${className}`}
+    >
+      <i className="nes-icon coin is-small"></i> {label}
+    </a>
   );
 }
 

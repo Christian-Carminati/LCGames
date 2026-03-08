@@ -49,3 +49,5 @@ QWEN.md
 .agent/rules
 
 /src/generated/prisma
+
+gha-creds-*.json
