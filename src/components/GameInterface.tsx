@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Emulator } from '@/components/Emulator';
 import { ScoreBoard } from '@/components/ScoreBoard';
 
@@ -48,10 +48,116 @@ function getYouTubeEmbedUrl(url: string): string | null {
     return null;
 }
 
-export function GameInterface({ 
-    gameSlug, 
-    gameTitle, 
-    romPath, 
+// Check if warp settings are enabled in localStorage
+function checkWarpSettings(romPath: string | null): { enabled: boolean; missing: string[] } {
+    if (typeof window === 'undefined' || !romPath) {
+        return { enabled: true, missing: [] };
+    }
+    
+    const settingsKey = `ejs-1-c64-${romPath}-settings`;
+    try {
+        const settings = JSON.parse(localStorage.getItem(settingsKey) || '{}');
+        const missing: string[] = [];
+        
+        // Fast loading settings (these affect load speed)
+        if (settings.settings?.vice_autoloadwarp !== 'enabled') {
+            missing.push('vice_autoloadwarp (auto-enable warp during loading)');
+        }
+        if (settings.settings?.vice_warp_boost !== 'enabled') {
+            missing.push('vice_warp_boost (warp speed boost)');
+        }
+        if (settings.settings?.vice_drive_true_emulation !== 'disabled') {
+            missing.push('vice_drive_true_emulation (should be disabled for faster loading)');
+        }
+        if (settings.settings?.vsync !== 'disabled') {
+            missing.push('vsync (should be disabled for better performance)');
+        }
+        
+        return {
+            enabled: missing.length === 0,
+            missing
+        };
+    } catch {
+        return { enabled: false, missing: ['settings not found'] };
+    }
+}
+
+// Enable warp settings in localStorage
+function enableWarpSettings(romPath: string | null): void {
+    if (typeof window === 'undefined' || !romPath) {
+        return;
+    }
+    
+    const settingsKey = `ejs-1-c64-${romPath}-settings`;
+    try {
+        const existingSettings = JSON.parse(localStorage.getItem(settingsKey) || '{}');
+        
+        // Default C64 controller configuration
+        const defaultC64Controls = {
+            "0": {
+                "0": { "value": 88, "value2": "BUTTON_2" },
+                "1": { "value": 83, "value2": "BUTTON_4" },
+                "2": { "value": 86, "value2": "SELECT" },
+                "3": { "value": 13, "value2": "START" },
+                "4": { "value": 38, "value2": "DPAD_UP" },
+                "5": { "value": 40, "value2": "DPAD_DOWN" },
+                "6": { "value": 37, "value2": "DPAD_LEFT" },
+                "7": { "value": 39, "value2": "DPAD_RIGHT" },
+                "8": { "value": 90, "value2": "BUTTON_1" },
+                "9": { "value": 65, "value2": "BUTTON_3" },
+                "10": { "value": 81, "value2": "LEFT_TOP_SHOULDER" },
+                "11": { "value": 69, "value2": "RIGHT_TOP_SHOULDER" },
+                "12": { "value": 9, "value2": "LEFT_BOTTOM_SHOULDER" },
+                "13": { "value": 82, "value2": "RIGHT_BOTTOM_SHOULDER" },
+                "14": { "value": 0, "value2": "LEFT_STICK" },
+                "15": { "value": 0, "value2": "RIGHT_STICK" },
+                "16": { "value": 72, "value2": "LEFT_STICK_X:+1" },
+                "17": { "value": 70, "value2": "LEFT_STICK_X:-1" },
+                "18": { "value": 71, "value2": "LEFT_STICK_Y:+1" },
+                "19": { "value": 84, "value2": "LEFT_STICK_Y:-1" },
+                "20": { "value": 76, "value2": "RIGHT_STICK_X:+1" },
+                "21": { "value": 74, "value2": "RIGHT_STICK_X:-1" },
+                "22": { "value": 75, "value2": "RIGHT_STICK_Y:+1" },
+                "23": { "value": 73, "value2": "RIGHT_STICK_Y:-1" },
+                "24": { "value": 49 },
+                "25": { "value": 50 },
+                "26": { "value": 51 },
+                "27": { "value": 0 },
+                "28": { "value": 0 },
+                "29": { "value": 0 }
+            },
+            "1": {},
+            "2": {},
+            "3": {}
+        };
+        
+        // Create complete settings structure if missing
+        if (!existingSettings.controlSettings || !existingSettings.controlSettings["0"]?.["0"]) {
+            existingSettings.controlSettings = defaultC64Controls;
+            existingSettings.cheats = [];
+        }
+        
+        // Force warp settings
+        existingSettings.settings = {
+            ...(existingSettings.settings || {}),
+            vsync: "disabled",
+            vice_autoloadwarp: "enabled",
+            vice_warp_boost: "enabled",
+            vice_drive_true_emulation: "disabled",
+            shader: "crt-easymode.glslp",
+        };
+        
+        localStorage.setItem(settingsKey, JSON.stringify(existingSettings));
+        console.log('[GAME_INTERFACE] Warp settings enabled for:', romPath);
+    } catch (e) {
+        console.error('[GAME_INTERFACE] Failed to enable warp settings:', e);
+    }
+}
+
+export function GameInterface({
+    gameSlug,
+    gameTitle,
+    romPath,
     scoreConfig,
     imageUrl,
     platform,
@@ -64,6 +170,7 @@ export function GameInterface({
 }: GameInterfaceProps) {
     const [currentScore, setCurrentScore] = useState<number>(0);
     const [currentDifficulty, setCurrentDifficulty] = useState<number>(0);
+    const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
         setCurrentScore(score);
@@ -72,14 +179,57 @@ export function GameInterface({
         }
     };
 
+    // Check warp settings on mount
+    useEffect(() => {
+        if (platform === 'C64' || platform === 'COMMODORE 64') {
+            const status = checkWarpSettings(romPath);
+            setWarpStatus(status);
+        }
+    }, [romPath, platform]);
+
+    const handleEnableWarpAndRefresh = () => {
+        enableWarpSettings(romPath);
+        window.location.reload();
+    };
+
     const isVideoOnlyGame = platform === 'PC' || (typeof platform === 'string' && platform.toUpperCase() === 'AMIGA' && !!youtubeUrl);
     const embedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl) : null;
+    const isC64 = platform === 'C64' || platform === 'COMMODORE 64';
+    // const showWarpWarning = isC64 && !warpStatus.enabled && !isVideoOnlyGame && romPath;
 
     return (
         <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Game Info Column */}
                 <div className="lg:col-span-2 space-y-6">
+                    {/* Warp Settings Warning - COMMENTED OUT FOR NOW
+                    {showWarpWarning && (
+                        <div className="nes-container is-rounded is-warning with-title">
+                            <p className="title">⚠️ FAST LOADING DISABLED</p>
+                            <div className="flex flex-col gap-3">
+                                <p className="text-sm">
+                                    This game is missing performance settings for fast loading. 
+                                    Enable them to skip loading screens and improve emulation speed.
+                                </p>
+                                <div className="text-xs text-gray-400">
+                                    <p className="mb-2">Missing fast loading settings:</p>
+                                    <ul className="list-disc list-inside space-y-1">
+                                        {warpStatus.missing.map((setting, idx) => (
+                                            <li key={idx} className="text-yellow-500">{setting}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                                <button
+                                    onClick={handleEnableWarpAndRefresh}
+                                    className="nes-btn is-warning"
+                                >
+                                    🚀 ENABLE FAST LOADING & REFRESH
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    */}
+
                     <div className="nes-container is-rounded is-dark with-title">
                         <p className="title">{gameTitle}</p>
                         {isVideoOnlyGame ? (
@@ -95,17 +245,17 @@ export function GameInterface({
                                 </div>
                             ) : (
                                 <div className="aspect-video w-full flex items-center justify-center bg-black/50 border-4 border-c64-border">
-                                    <img 
-                                        src={imageUrl} 
-                                        alt={gameTitle} 
-                                        className="max-h-full object-contain rendering-pixelated" 
+                                    <img
+                                        src={imageUrl}
+                                        alt={gameTitle}
+                                        className="max-h-full object-contain rendering-pixelated"
                                     />
                                 </div>
                             )
                         ) : (
-                            <Emulator 
-                                romPath={romPath} 
-                                scoreConfig={scoreConfig} 
+                            <Emulator
+                                romPath={romPath}
+                                scoreConfig={scoreConfig}
                                 onScoreUpdate={handleScoreUpdate}
                                 isAdmin={isAdmin}
                                 difficultyConfig={difficultyConfig}

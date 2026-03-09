@@ -14,6 +14,19 @@ const nextConfig: NextConfig = {
             key: "Cross-Origin-Embedder-Policy",
             value: "credentialless",
           },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/roms/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
         ],
       },
     ];
