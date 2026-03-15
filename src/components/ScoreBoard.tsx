@@ -97,8 +97,8 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
                   <button
                     key={d}
                     type="button"
-                    className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : 'is-disabled'} cursor-default`}
-                    disabled
+                    className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : ''}`}
+                    onClick={() => setSelectedDifficulty(d)}
                     style={{ fontSize: '0.65rem', padding: '4px 8px' }}
                   >
                     {getDifficultyName(d).toUpperCase()}
@@ -110,7 +110,7 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
                 <select
                   required
                   value={selectedDifficulty}
-                  disabled
+                  onChange={(e) => setSelectedDifficulty(parseInt(e.target.value, 10))}
                   className="text-xs"
                 >
                   {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
@@ -127,16 +127,16 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
             <div className="flex justify-center gap-2">
               <button
                 type="button"
-                className={`nes-btn ${selectedStandard === 'PAL' ? 'is-success' : 'is-disabled'} cursor-default`}
-                disabled
+                className={`nes-btn ${selectedStandard === 'PAL' ? 'is-success' : ''}`}
+                onClick={() => setSelectedStandard('PAL')}
                 style={{ fontSize: '0.65rem', padding: '4px 8px' }}
               >
                 PAL
               </button>
               <button
                 type="button"
-                className={`nes-btn ${selectedStandard === 'NTSC' ? 'is-success' : 'is-disabled'} cursor-default`}
-                disabled
+                className={`nes-btn ${selectedStandard === 'NTSC' ? 'is-success' : ''}`}
+                onClick={() => setSelectedStandard('NTSC')}
                 style={{ fontSize: '0.65rem', padding: '4px 8px' }}
               >
                 NTSC

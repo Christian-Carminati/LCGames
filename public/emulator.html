@@ -42,9 +42,11 @@
       const romPath = urlParams.get("rom");
       const scoreConfigJson = urlParams.get("scoreConfig");
       const difficultyConfigJson = urlParams.get("difficultyConfig");
+      const palNtscConfigJson = urlParams.get("palNtscConfig");
 
       // Global: parsed difficulty config (if any)
       let difficultyConfig = null;
+      let palNtscConfig = null;
 
       // --- Initialization ---
       if (romPath) {
@@ -60,6 +62,16 @@
             console.log("[DIFFICULTY] Config loaded:", difficultyConfig);
           } catch (e) {
             console.error("[DIFFICULTY] Failed to parse config:", e);
+          }
+        }
+        if (palNtscConfigJson) {
+          try {
+            palNtscConfig = JSON.parse(
+              decodeURIComponent(palNtscConfigJson),
+            );
+            console.log("[PAL/NTSC] Config loaded:", palNtscConfig);
+          } catch (e) {
+            console.error("[PAL/NTSC] Failed to parse config:", e);
           }
         }
       } else {
@@ -227,6 +239,37 @@
       }
 
       /**
+       * Reads the current PAL/NTSC standard from memory
+       * Returns 0 for PAL, 1 for NTSC (or default 0 if not configured)
+       */
+      function readPalNtsc() {
+        if (!palNtscConfig || !palNtscConfig.address) return 0;
+
+        const heap = findHeap();
+        if (!heap) return 0;
+
+        let address = parseInt(palNtscConfig.address, 16);
+
+        // Apply base offset for PAL/NTSC if available
+        if (palNtscConfig.baseOffset) {
+          address += parseInt(palNtscConfig.baseOffset, 16);
+        }
+
+        if (address >= heap.length) return 0;
+
+        let palNtscValue = heap[address] || 0;
+
+        const now = Date.now();
+        if (debugMode && now - lastLog > 5000) {
+          console.log(
+            `[DEBUG_PALNTSC] Addr: ${palNtscConfig.address} (Base: ${palNtscConfig.baseOffset || 0} -> Real: ${address}), Value: 0x${palNtscValue.toString(16)} (Dec: ${palNtscValue})`,
+          );
+        }
+
+        return palNtscValue;
+      }
+
+      /**
        * Reads the current difficulty level from memory
        * Returns the byte value at the configured address, or 0 if not configured
        */
@@ -293,6 +336,23 @@
               sendScoreToParent(score);
             }
           }, 1000);
+          
+          // Also start PAL/NTSC polling if configured (runs even without score changes)
+          if (palNtscConfig && palNtscConfig.address) {
+            let lastPalNtsc = -1;
+            setInterval(() => {
+              const palNtscValue = readPalNtsc();
+              if (palNtscValue !== lastPalNtsc) {
+                lastPalNtsc = palNtscValue;
+                const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
+                window.parent.postMessage(
+                  { type: "PALNTSC_UPDATE", standard: standard },
+                  "*",
+                );
+                console.log("[PAL/NTSC] Changed to:", standard);
+              }
+            }, 500);
+          }
         } catch (e) {
           console.error("Failed to parse score config:", e);
         }
@@ -464,8 +524,16 @@
       function sendScoreToParent(score) {
         if (!isNaN(score)) {
           const difficulty = readDifficulty();
+          const palNtscValue = readPalNtsc();
           window.parent.postMessage(
-            { type: "SCORE_UPDATE", score: score, difficulty: difficulty },
+            { type: "SCORE_UPDATE", score: score, difficulty: difficulty, palNtsc: palNtscValue },
+            "*",
+          );
+          
+          // Also send separate PAL/NTSC update message
+          const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
+          window.parent.postMessage(
+            { type: "PALNTSC_UPDATE", standard: standard },
             "*",
           );
         }
