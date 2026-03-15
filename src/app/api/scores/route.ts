@@ -1,9 +1,30 @@
-
-
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/db';
-import { generateScoreHash } from '@/lib/security';
+import { verifyScoreHash } from '@/lib/security';
+
+interface ScoreWithUser {
+  id: string;
+  value: number;
+  difficulty: number;
+  userId: string;
+  gameSlug: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    name: string | null;
+    image: string | null;
+    email: string;
+  };
+}
+
+interface FormattedScore {
+  userId: string;
+  name: string;
+  score: number;
+  date: string;
+  userImage: string | null;
+}
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -35,9 +56,8 @@ export async function GET(request: Request) {
             }
         });
 
-        // Map to expected format
-        const formattedScores = (scores as any[]).map((s: any) => ({
-            userId: s.userId, // keep userId available? Or maybe email. The frontend expects userId to match session email for highlighting.
+        const formattedScores: FormattedScore[] = scores.map((s) => ({
+            userId: s.user?.email ?? '',
             name: s.user.name || "Anonymous",
             score: s.value,
             date: s.updatedAt.toLocaleDateString('it-IT'),
@@ -65,8 +85,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
         }
 
-        const expectedHash = generateScoreHash(score, gameSlug, difficulty);
-        if (hash !== expectedHash) {
+        const isValid = verifyScoreHash(score, gameSlug, difficulty, hash);
+        if (!isValid) {
             console.warn(`[SECURITY] Invalid score hash from user ${session.user.email} for game ${gameSlug}`);
             return NextResponse.json({ error: 'Invalid score verification signature' }, { status: 403 });
         }
@@ -75,8 +95,6 @@ export async function POST(request: Request) {
         const userName = session.user.name || "Anonymous";
         const userImage = session.user.image;
 
-        // Ensure user exists (in case they logged in but DB record missing/outdated)
-        // Upsert User
         const user = await prisma.user.upsert({
             where: { email: userEmail },
             update: {
@@ -90,7 +108,6 @@ export async function POST(request: Request) {
             }
         });
 
-        // 1. Check existing score for this user+game+difficulty
         const existingScore = await prisma.score.findUnique({
             where: {
                 userId_gameSlug_difficulty: {
@@ -103,15 +120,12 @@ export async function POST(request: Request) {
 
         if (existingScore) {
             if (score > existingScore.value) {
-                // Update if higher
                 await prisma.score.update({
                     where: { id: existingScore.id },
                     data: { value: score }
                 });
             }
-            // If lower, do nothing (Max Score logic)
         } else {
-            // Create new
             await prisma.score.create({
                 data: {
                     value: score,
@@ -122,7 +136,6 @@ export async function POST(request: Request) {
             });
         }
 
-        // Return updated list (top 20) for same difficulty
         const newScores = await prisma.score.findMany({
             where: { gameSlug, difficulty },
             orderBy: { value: 'desc' },
@@ -134,8 +147,8 @@ export async function POST(request: Request) {
             }
         });
 
-         const formattedScores = (newScores as any[]).map((s: any) => ({
-            userId: s.user?.email, // Frontend uses email to check "isMe" usually? Yes, session.user.email
+        const formattedScores: FormattedScore[] = newScores.map((s) => ({
+            userId: s.user?.email ?? '',
             name: s.user.name || "Anonymous",
             score: s.value,
             date: s.updatedAt.toLocaleDateString('it-IT'),

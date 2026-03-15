@@ -1,13 +1,33 @@
+import { createHmac, timingSafeEqual } from 'crypto';
+
+function getScoreSecret(): string {
+  const secret = process.env.SCORE_SECRET;
+  if (!secret) {
+    throw new Error('SCORE_SECRET environment variable is not set');
+  }
+  return secret;
+}
+
 export function generateScoreHash(score: number, gameSlug: string, difficulty: number): string {
-    // A simple obfuscation to deter casual tampering
-    // Not cryptographically secure against a determined reverse-engineer
-    const secret = process.env.NEXT_PUBLIC_SCORE_SECRET || "LCGames2024!";
-    const raw = `${score}:${gameSlug}:${difficulty}:${secret}`;
-    let hash = 0;
-    for (let i = 0; i < raw.length; i++) {
-        const char = raw.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash.toString(16);
+  const secret = getScoreSecret();
+  const data = `${score}:${gameSlug}:${difficulty}`;
+  return createHmac('sha256', secret).update(data).digest('hex');
+}
+
+export function verifyScoreHash(
+  score: number,
+  gameSlug: string,
+  difficulty: number,
+  submittedHash: string
+): boolean {
+  const expectedHash = generateScoreHash(score, gameSlug, difficulty);
+  
+  const expectedBuffer = Buffer.from(expectedHash);
+  const submittedBuffer = Buffer.from(submittedHash);
+  
+  if (expectedBuffer.length !== submittedBuffer.length) {
+    return false;
+  }
+  
+  return timingSafeEqual(expectedBuffer, submittedBuffer);
 }

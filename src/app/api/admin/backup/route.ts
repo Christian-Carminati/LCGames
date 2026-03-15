@@ -1,19 +1,17 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminAuth } from '@/lib/admin-auth';
 
+export async function POST(request: NextRequest) {
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
 
-import { NextResponse } from 'next/server';
-
-export async function POST() {
-  // Edge Runtime check
   if (process.env.NEXT_RUNTIME === 'edge') {
-     // child_process is not available on edge. 
-     // We return a message instead of crashing the build/runtime.
-     return NextResponse.json({ 
-         success: false, 
-         error: 'Database backup is only supported on Node.js runtime. This environment is running on Edge.' 
-     }, { status: 501 });
+      return NextResponse.json({ 
+          success: false, 
+          error: 'Database backup is only supported on Node.js runtime. This environment is running on Edge.' 
+      }, { status: 501 });
   }
 
-  // We use dynamic import of a separate file to hide Node.js modules from the Edge compiler
   try {
     const { runBackup } = await import('@/lib/backup-node');
     const { stdout, stderr } = await runBackup();

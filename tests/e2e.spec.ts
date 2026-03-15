@@ -9,8 +9,8 @@ test.describe('LC-Games E2E', () => {
     const overlay = page.getByText('INSERT COIN');
     await expect(overlay).toBeVisible();
     
-    // Click to start
-    await page.locator('.fixed').click();
+    // Click to start - use more specific selector for the overlay
+    await page.locator('.fixed.inset-0').click();
     
     // Check that overlay disappears
     await expect(overlay).toBeHidden();
@@ -22,7 +22,8 @@ test.describe('LC-Games E2E', () => {
 
   test('User can navigate to games list', async ({ page }) => {
     await page.goto('/');
-    await page.locator('.fixed').click({ force: true }); // Skip coin screen
+    // Skip coin screen with more specific selector
+    await page.locator('.fixed.inset-0').click({ force: true });
     
     await page.getByRole('link', { name: 'START GAME' }).click();
     
@@ -39,7 +40,7 @@ test.describe('LC-Games E2E', () => {
     await page.goto('/games/hero-is-back-c64c128');
     // Skip coin if it appears (it's global)
     if (await page.getByText('INSERT COIN').isVisible()) {
-        await page.locator('.fixed').click();
+        await page.locator('.fixed.inset-0').click();
     }
     
     // Check Game Info

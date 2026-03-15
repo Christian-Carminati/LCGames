@@ -1,14 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { requireAdminAuth } from '@/lib/admin-auth';
+import { ScoreIdSchema, ScoreDifficultySchema } from '@/lib/validations';
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
+    const authError = requireAdminAuth(request);
+    if (authError) return authError;
+
     try {
         const body = await request.json();
-        const { scoreId } = body;
-
-        if (!scoreId) {
-             return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+        
+        const result = ScoreIdSchema.safeParse(body);
+        if (!result.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: result.error.flatten() },
+                { status: 400 }
+            );
         }
+
+        const { scoreId } = result.data;
 
         await prisma.score.delete({
             where: { id: scoreId }
@@ -22,18 +32,26 @@ export async function DELETE(request: Request) {
     }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
+    const authError = requireAdminAuth(request);
+    if (authError) return authError;
+
     try {
         const body = await request.json();
-        const { scoreId, difficulty } = body;
-
-        if (!scoreId || difficulty === undefined) {
-             return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
+        
+        const result = ScoreDifficultySchema.safeParse(body);
+        if (!result.success) {
+            return NextResponse.json(
+                { error: 'Invalid input', details: result.error.flatten() },
+                { status: 400 }
+            );
         }
+
+        const { scoreId, difficulty } = result.data;
 
         const updated = await prisma.score.update({
             where: { id: scoreId },
-            data: { difficulty: parseInt(difficulty, 10) }
+            data: { difficulty }
         });
         
         return NextResponse.json({ success: true, score: updated });

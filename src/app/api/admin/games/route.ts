@@ -1,7 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { requireAdminAuth } from '@/lib/admin-auth';
+import { GameSchema } from '@/lib/validations';
+import type { Prisma } from '@prisma/client';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const games = await prisma.game.findMany({
       orderBy: { title: 'asc' }
@@ -12,29 +18,45 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const authError = requireAdminAuth(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
-    if (!body.title) {
-        return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    
+    const result = GameSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: result.error.flatten() },
+        { status: 400 }
+      );
     }
     
-    // Auto-generate slug if not provided/derived
-    const slug = body.slug || body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const data = result.data;
+    const slug = data.slug || data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+    const existing = await prisma.game.findUnique({ where: { slug } });
+    if (existing) {
+      return NextResponse.json(
+        { error: 'A game with this slug already exists' },
+        { status: 409 }
+      );
+    }
 
     const newGame = await prisma.game.create({
       data: {
         slug,
-        title: body.title,
-        description: body.description,
-        platform: body.platform || "C64",
-        genre: body.genre,
-        imageUrl: body.imageUrl,
-        url: body.url,
-        romPath: body.romPath,
-        youtubeUrl: body.youtubeUrl || null,
-        scoreConfig: body.scoreConfig ? body.scoreConfig : undefined,
-        difficultyConfig: body.difficultyConfig !== undefined ? body.difficultyConfig : undefined
+        title: data.title,
+        description: data.description,
+        platform: data.platform || 'C64',
+        genre: data.genre,
+        imageUrl: data.imageUrl || undefined,
+        url: data.url || undefined,
+        romPath: data.romPath,
+        youtubeUrl: data.youtubeUrl || undefined,
+        scoreConfig: data.scoreConfig as Prisma.InputJsonValue | undefined,
+        difficultyConfig: data.difficultyConfig as Prisma.InputJsonValue | undefined
       }
     });
 

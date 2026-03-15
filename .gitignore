@@ -45,6 +45,8 @@ next-env.d.ts
 .qwen/
 QWEN.md
 
+# 
+
 # antigravity rules
 .agent/rules
 
