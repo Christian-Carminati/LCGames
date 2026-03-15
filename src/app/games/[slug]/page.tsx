@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
+import { verifyAdminToken } from '@/lib/admin-auth';
 import Link from 'next/link';
 import { DonateButton } from '@/components/DonateButton';
 import { GameInterface } from '@/components/GameInterface';
@@ -16,7 +17,8 @@ export default async function GameDetailPage(props: PageProps) {
   const params = await props.params;
   const { slug } = params;
   const cookieStore = await cookies();
-  const isAdmin = cookieStore.get('admin_token')?.value === 'authenticated';
+  const adminToken = cookieStore.get('admin_token')?.value;
+  const isAdmin = adminToken ? verifyAdminToken(adminToken) : false;
   
   const game = await prisma.game.findUnique({
       where: { slug }

@@ -14,12 +14,19 @@ interface ScoreBoardProps {
   hasDifficultyLevels?: boolean;
   numDifficultyLevels?: number;
   difficultyNames?: string[];
+  hasPalNtsc?: boolean;
+  currentStandard?: 'PAL' | 'NTSC';
 }
 
-export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [] }: ScoreBoardProps) {
+export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [], hasPalNtsc = false, currentStandard = 'PAL' }: ScoreBoardProps) {
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
+  const [selectedStandard, setSelectedStandard] = useState<'PAL' | 'NTSC'>(currentStandard);
+
+  useEffect(() => {
+    setSelectedStandard(currentStandard);
+  }, [currentStandard]);
 
   useEffect(() => {
     let active = true;
@@ -27,7 +34,14 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
     const fetchScores = async () => {
       setLoading(true);
       try {
-        const diffParam = hasDifficultyLevels ? `&difficulty=${selectedDifficulty}` : '';
+        let diffParam = '';
+        if (hasDifficultyLevels) {
+          // Calculate combined difficulty: base difficulty + offset for PAL/NTSC
+          const baseDifficulty = selectedDifficulty;
+          const standardOffset = hasPalNtsc && selectedStandard === 'NTSC' ? numDifficultyLevels : 0;
+          const combinedDifficulty = baseDifficulty + standardOffset;
+          diffParam = `&difficulty=${combinedDifficulty}`;
+        }
         const res = await fetch(`/api/scores?gameSlug=${gameSlug}${diffParam}`);
         
         if (!active) return;
@@ -56,7 +70,7 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
     return () => {
       active = false;
     };
-  }, [gameSlug, selectedDifficulty, hasDifficultyLevels]);
+  }, [gameSlug, selectedDifficulty, hasDifficultyLevels, selectedStandard, hasPalNtsc, numDifficultyLevels]);
 
   const getDifficultyName = (levelIndex: number): string => {
     if (difficultyNames[levelIndex]) {
@@ -75,35 +89,58 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
       <p className="title">HIGH SCORES</p>
 
       {hasDifficultyLevels && numDifficultyLevels > 1 && (
-        <div className="mb-4 flex justify-center relative z-50">
-          {numDifficultyLevels <= 5 ? (
-            <div className="flex flex-wrap gap-2 justify-center">
-              {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : ''}`}
-                  onClick={() => setSelectedDifficulty(d)}
-                  style={{ fontSize: '0.65rem', padding: '4px 8px' }}
-                >
-                  {getDifficultyName(d).toUpperCase()}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="nes-select is-dark">
-              <select
-                required
-                value={selectedDifficulty}
-                onChange={(e) => setSelectedDifficulty(parseInt(e.target.value, 10))}
-                className="text-xs"
-              >
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex justify-center relative z-50">
+            {numDifficultyLevels <= 5 ? (
+              <div className="flex flex-wrap gap-2 justify-center">
                 {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
-                  <option key={d} value={d}>
+                  <button
+                    key={d}
+                    type="button"
+                    className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : 'is-disabled'} cursor-default`}
+                    disabled
+                    style={{ fontSize: '0.65rem', padding: '4px 8px' }}
+                  >
                     {getDifficultyName(d).toUpperCase()}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
+            ) : (
+              <div className="nes-select is-dark">
+                <select
+                  required
+                  value={selectedDifficulty}
+                  disabled
+                  className="text-xs"
+                >
+                  {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
+                    <option key={d} value={d}>
+                      {getDifficultyName(d).toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {hasPalNtsc && (
+            <div className="flex justify-center gap-2">
+              <button
+                type="button"
+                className={`nes-btn ${selectedStandard === 'PAL' ? 'is-success' : 'is-disabled'} cursor-default`}
+                disabled
+                style={{ fontSize: '0.65rem', padding: '4px 8px' }}
+              >
+                PAL
+              </button>
+              <button
+                type="button"
+                className={`nes-btn ${selectedStandard === 'NTSC' ? 'is-success' : 'is-disabled'} cursor-default`}
+                disabled
+                style={{ fontSize: '0.65rem', padding: '4px 8px' }}
+              >
+                NTSC
+              </button>
             </div>
           )}
         </div>

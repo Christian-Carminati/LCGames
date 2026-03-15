@@ -341,7 +341,7 @@ export function GameInterface({
             </div>
 
             {!isVideoOnlyGame && scoreConfig && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-6">
                     <CurrentScoreCard 
                         gameSlug={gameSlug}
                         capturedScore={currentScore}
@@ -358,6 +358,8 @@ export function GameInterface({
                         hasDifficultyLevels={!!difficultyConfig}
                         numDifficultyLevels={difficultyConfig?.numLevels || 1}
                         difficultyNames={difficultyConfig?.levelNames || []}
+                        hasPalNtsc={!!palNtscConfig}
+                        currentStandard={currentStandard}
                     />
                 </div>
             )}
@@ -368,6 +370,8 @@ export function GameInterface({
                     hasDifficultyLevels={!!difficultyConfig}
                     numDifficultyLevels={difficultyConfig?.numLevels || 1}
                     difficultyNames={difficultyConfig?.levelNames || []}
+                    hasPalNtsc={!!palNtscConfig}
+                    currentStandard={currentStandard}
                 />
             )}
         </div>

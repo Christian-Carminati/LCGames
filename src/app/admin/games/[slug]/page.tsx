@@ -26,6 +26,7 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
       : undefined;
   
   const difficultyConfigRaw = game.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number, levelNames?: string[] } | null;
+  const palNtscConfigRaw = game.palNtscConfig as { address?: string, baseOffset?: string, numStandards?: number } | null;
   const gameData = {
       title: game.title,
       platform: game.platform,
@@ -40,6 +41,11 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
         baseOffset: difficultyConfigRaw?.baseOffset || '',
         numLevels: difficultyConfigRaw?.numLevels || 1,
         levelNames: difficultyConfigRaw?.levelNames?.join(', ') || ''
+      },
+      palNtscConfig: {
+        address: palNtscConfigRaw?.address || '',
+        baseOffset: palNtscConfigRaw?.baseOffset || '',
+        numStandards: palNtscConfigRaw?.numStandards || 2
       },
       scoreConfig: scoreConfig || { address: '', type: 'byte', length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
   };

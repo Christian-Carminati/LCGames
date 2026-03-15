@@ -129,8 +129,8 @@ export function CurrentScoreCard({
                 <button
                   key={d}
                   type="button"
-                  className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : ''}`}
-                  onClick={() => setSelectedDifficulty(d)}
+                  className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : 'is-disabled'} cursor-default`}
+                  disabled
                   style={{ fontSize: '0.65rem', padding: '4px 8px' }}
                 >
                   {getDifficultyName(d).toUpperCase()}
@@ -141,7 +141,7 @@ export function CurrentScoreCard({
                 <select
                   required
                   value={selectedDifficulty}
-                  onChange={(e) => setSelectedDifficulty(parseInt(e.target.value, 10))}
+                  disabled
                   className="text-xs"
                 >
                   {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
@@ -158,16 +158,16 @@ export function CurrentScoreCard({
             <div className="flex justify-center gap-2">
               <button
                 type="button"
-                className={`nes-btn ${selectedStandard === 'PAL' ? 'is-success' : ''}`}
-                onClick={() => setSelectedStandard('PAL')}
+                className={`nes-btn ${selectedStandard === 'PAL' ? 'is-success' : 'is-disabled'} cursor-default`}
+                disabled
                 style={{ fontSize: '0.65rem', padding: '4px 8px' }}
               >
                 PAL
               </button>
               <button
                 type="button"
-                className={`nes-btn ${selectedStandard === 'NTSC' ? 'is-success' : ''}`}
-                onClick={() => setSelectedStandard('NTSC')}
+                className={`nes-btn ${selectedStandard === 'NTSC' ? 'is-success' : 'is-disabled'} cursor-default`}
+                disabled
                 style={{ fontSize: '0.65rem', padding: '4px 8px' }}
               >
                 NTSC
