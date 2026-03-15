@@ -56,7 +56,8 @@ export async function PUT(
         romPath: body.romPath,
         youtubeUrl: body.youtubeUrl || null,
         scoreConfig: body.scoreConfig ? body.scoreConfig : undefined,
-        difficultyConfig: body.difficultyConfig !== undefined ? body.difficultyConfig : undefined
+        difficultyConfig: body.difficultyConfig !== undefined ? body.difficultyConfig : undefined,
+        palNtscConfig: body.palNtscConfig !== undefined ? body.palNtscConfig : undefined
       }
     });
 

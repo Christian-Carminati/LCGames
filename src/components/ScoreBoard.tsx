@@ -1,9 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useSession, signIn } from 'next-auth/react';
-import { useNotification } from '@/context/NotificationContext';
-import { generateScoreHash } from '@/lib/security';
+import { useState, useEffect } from 'react';
 
 interface Score {
   name: string;
@@ -14,66 +11,16 @@ interface Score {
 
 interface ScoreBoardProps {
   gameSlug: string;
-  capturedScore?: number;
-  isAutoTracked?: boolean;
-  currentDifficulty?: number;
   hasDifficultyLevels?: boolean;
   numDifficultyLevels?: number;
   difficultyNames?: string[];
 }
 
-export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDifficulty = 0, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [] }: ScoreBoardProps) {
-  const { data: session } = useSession();
+export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [] }: ScoreBoardProps) {
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
-  const { showNotification } = useNotification();
 
-  // --- Pending Score Recovery (after login redirect) ---
-  const savePendingScore = useCallback(async (pending: { gameSlug: string; score: number; difficulty: number }) => {
-    try {
-      const res = await fetch('/api/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            ...pending,
-            hash: generateScoreHash(pending.score, pending.gameSlug, pending.difficulty)
-        })
-      });
-      if (res.ok) {
-        const updatedScores = await res.json();
-        setScores(updatedScores.slice(0, 10));
-        showNotification(`Score ${pending.score} saved after login!`, 'success');
-      }
-    } catch (e) {
-      console.error('Failed to save pending score:', e);
-    }
-  }, [showNotification]);
-
-  useEffect(() => {
-    if (session) {
-      const raw = sessionStorage.getItem('pendingScore');
-      if (raw) {
-        try {
-          const pending = JSON.parse(raw);
-          if (pending.gameSlug === gameSlug && pending.score > 0) {
-            sessionStorage.removeItem('pendingScore');
-            savePendingScore(pending);
-          }
-        } catch { /* ignore */ }
-      }
-    }
-  }, [session, gameSlug, savePendingScore]);
-
-  // Sync selected difficulty with current emulator difficulty
-  useEffect(() => {
-    if (hasDifficultyLevels) {
-      setSelectedDifficulty(currentDifficulty);
-    }
-  }, [currentDifficulty, hasDifficultyLevels]);
-
-  // Fetch scores from API
   useEffect(() => {
     let active = true;
     
@@ -88,7 +35,6 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data)) {
-            // Frontend keeps only top 10
             setScores(data.slice(0, 10));
           } else {
             console.error("Received invalid scores data:", data);
@@ -112,50 +58,10 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
     };
   }, [gameSlug, selectedDifficulty, hasDifficultyLevels]);
 
-  
-  const handleSaveScore = async () => {
-    if (!session || capturedScore === undefined) return;
-
-    setSubmitting(true);
-    try {
-        const res = await fetch('/api/scores', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                gameSlug,
-                score: capturedScore,
-                difficulty: hasDifficultyLevels ? currentDifficulty : 0,
-                hash: generateScoreHash(capturedScore, gameSlug, hasDifficultyLevels ? currentDifficulty : 0)
-            })
-        });
-
-        if (res.ok) {
-            const updatedScores = await res.json();
-            // Update local state with top 10
-            setScores(updatedScores.slice(0, 10));
-            
-            // Force the tab to match where the score was saved
-            if (hasDifficultyLevels) {
-                setSelectedDifficulty(currentDifficulty);
-            }
-            
-            showNotification("Score Saved!", "success");
-        } else {
-            showNotification("Failed to save score.", "error");
-        }
-    } catch (e) {
-        console.error("Failed to save score", e);
-        showNotification("Error saving score.", "error");
-    } finally {
-        setSubmitting(false);
-    }
-  };
-
-  const getDifficultyName = (levelIndex: number) => {
+  const getDifficultyName = (levelIndex: number): string => {
     if (difficultyNames[levelIndex]) {
       return difficultyNames[levelIndex];
     }
-    // Default naming
     switch (levelIndex) {
       case 0: return 'EASY';
       case 1: return 'MEDIUM';
@@ -168,7 +74,6 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
     <div className="nes-container is-rounded is-dark with-title">
       <p className="title">HIGH SCORES</p>
 
-      {/* Difficulty Tabs / Dropdown */}
       {hasDifficultyLevels && numDifficultyLevels > 1 && (
         <div className="mb-4 flex justify-center relative z-50">
           {numDifficultyLevels <= 5 ? (
@@ -201,51 +106,6 @@ export function ScoreBoard({ gameSlug, capturedScore, isAutoTracked, currentDiff
               </select>
             </div>
           )}
-        </div>
-      )}
-      
-      {/* Show Current/Captured Score Panel for Auto-Tracked Games */}
-      {isAutoTracked && (
-        <div className="mb-6 bg-gray-900 border-b-4 border-gray-700 pb-4 text-center">
-             <p className="text-xs text-gray-400 mb-2">CURRENT SCORE</p>
-             <p className="text-4xl text-green-400">{capturedScore ?? 0}</p>
-             {hasDifficultyLevels && (
-               <p className="text-xs text-yellow-400 mt-1">DIFFICULTY: {getDifficultyName(currentDifficulty).toUpperCase()}</p>
-             )}
-             
-             <div className="mt-4 relative z-10">
-               {session ? (
-                 <button 
-                    type="button" 
-                    className={`nes-btn is-success ${submitting ? 'is-disabled' : ''}`}
-                    onClick={handleSaveScore}
-                    disabled={submitting || capturedScore === undefined || capturedScore === 0}
-                 >
-                    {submitting ? 'SAVING...' : 'SAVE SCORE'}
-                 </button>
-               ) : (
-                 <>
-                 <button 
-                    type="button" 
-                    className="nes-btn is-primary"
-                    onClick={() => {
-                      // Save pending score to sessionStorage before redirect
-                      if (capturedScore !== undefined && capturedScore > 0) {
-                        sessionStorage.setItem('pendingScore', JSON.stringify({
-                          gameSlug,
-                          score: capturedScore,
-                          difficulty: hasDifficultyLevels ? currentDifficulty : 0
-                        }));
-                      }
-                      signIn('google', { callbackUrl: window.location.href });
-                    }}
-                 >
-                    LOGIN TO SAVE
-                 </button>
-                 <p className="text-xs text-yellow-500 mt-2 animate-pulse">⚠️ Score won&apos;t be saved without login</p>
-                 </>
-               )}
-             </div>
         </div>
       )}
 

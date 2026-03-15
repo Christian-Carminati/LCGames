@@ -49,31 +49,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatScore } from '@/lib/utils';
 import type { Game } from '@/types';
 ```
-
-### Components
-
-#### Server vs Client
-Default to Server Components. Add "use client" only when using:
-- React hooks (useState, useEffect, useRef)
-- Browser APIs (window, document)
-- Event handlers (onClick, onChange)
+Default to Server Components. Add "use client" only when using hooks, browser APIs, or event handlers.
 
 ```typescript
-// Server Component
-export default function GamePage({ params }: { params: { slug: string } }) {
-  const game = await getGame(params.slug);
-  return <GameCard game={game} />;
-}
-
-// Client Component
-'use client';
-export function ScoreInput() {
-  const [score, setScore] = useState(0);
-  return <input value={score} onChange={(e) => setScore(+e.target.value)} />;
-}
+// Server: async component, no hooks
+// Client: 'use client'; useState, useEffect, onClick, etc.
 ```
 
 ### Error Handling
+Wrap async operations in try/catch. Return appropriate status codes from API routes.
 
 ```typescript
 // API Routes
@@ -101,14 +85,10 @@ async function submitScore(score: number) {
 ```
 
 ### CSS (Tailwind CSS v4)
-- Use utility classes, avoid custom CSS
-- Keep custom styles in `globals.css`
+Use utility classes, keep custom styles in `globals.css`.
 
 ```tsx
-// Good
 <div className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
-
-// Responsive
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 ```
 
@@ -141,3 +121,38 @@ src/
 - Use `.env.example` as template
 - Access via `process.env.VARIABLE_NAME`
 - Prefix with `NEXT_PUBLIC_` only if needed client-side
+
+### Validation (Zod)
+The project uses Zod for input validation in API routes. Always validate request bodies:
+```typescript
+import { z } from 'zod';
+
+const ScoreSchema = z.object({
+  gameSlug: z.string().min(1),
+  score: z.number().int().min(0),
+  playerName: z.string().min(1).max(50),
+});
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const result = ScoreSchema.safeParse(body);
+  
+  if (!result.success) {
+    return NextResponse.json({ error: result.error.errors }, { status: 400 });
+  }
+  
+  const { gameSlug, score, playerName } = result.data;
+  // Process validated data
+}
+```
+
+### Authentication
+- Uses NextAuth.js (v5 beta) for authentication
+- Configure auth in `src/auth.ts`
+- Use `getServerSession()` for protected routes
+- Admin routes require admin role check via `adminAuth` middleware
+
+### Rate Limiting
+- Uses `rate-limiter-flexible` for API rate limiting
+- Import from `@/lib/rate-limit.ts`
+- Apply to sensitive endpoints (score submission, login attempts)

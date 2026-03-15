@@ -67,6 +67,7 @@ model Game {
   romPath     String?
   youtubeUrl       String?  // YouTube video URL (used for PC games instead of emulator)
   difficultyConfig Json?    // Config for reading difficulty from memory, e.g. { "address": "0x2299" }
+  palNtscConfig     Json?    // Config for PAL/NTSC selection, e.g. { "address": "0x2xxx", "baseOffset": "0x0", "numStandards": 2 }
   scoreConfig      Json?    // Stores address, type, length, endianness
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

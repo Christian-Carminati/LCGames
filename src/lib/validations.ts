@@ -12,6 +12,7 @@ export const GameSchema = z.object({
   youtubeUrl: z.string().url().optional().or(z.literal('')),
   scoreConfig: z.record(z.string(), z.unknown()).optional(),
   difficultyConfig: z.record(z.string(), z.unknown()).optional(),
+  palNtscConfig: z.record(z.string(), z.unknown()).optional(),
 }).transform(data => ({
   ...data,
   platform: data.platform || 'C64' as const

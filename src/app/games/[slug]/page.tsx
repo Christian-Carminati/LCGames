@@ -42,6 +42,16 @@ export default async function GameDetailPage(props: PageProps) {
       ? game.scoreConfig as unknown as ScoreConfig 
       : undefined;
 
+  interface PalNtscConfig {
+      address: string;
+      baseOffset?: string;
+      numStandards?: number;
+  }
+
+  const palNtscConfig = (game.palNtscConfig && typeof game.palNtscConfig === 'object')
+      ? game.palNtscConfig as unknown as PalNtscConfig
+      : undefined;
+
   return (
     <div className="container mx-auto pb-16 px-4">
       <div className="mb-6 flex items-center gap-3">
@@ -68,6 +78,7 @@ export default async function GameDetailPage(props: PageProps) {
         isAdmin={isAdmin}
         youtubeUrl={game.youtubeUrl || undefined}
         difficultyConfig={(game.difficultyConfig as { address: string } | null) || undefined}
+        palNtscConfig={palNtscConfig}
         />
 
       <div className="mt-12 border-t-4 border-white/10 pt-8">

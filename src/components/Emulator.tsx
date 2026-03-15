@@ -13,6 +13,8 @@ interface EmulatorProps {
   onScoreUpdate?: (score: number, difficulty?: number) => void;
   isAdmin?: boolean;
   difficultyConfig?: { address: string };
+  palNtscConfig?: { address: string; baseOffset?: string; numStandards?: number };
+  onPalNtscUpdate?: (standard: 'PAL' | 'NTSC') => void;
 }
 
 // Helper to parse search pattern
@@ -42,7 +44,7 @@ const parseSearchPattern = (input: string): { bytes: number[]; mode: string } =>
   return { bytes, mode: '(Raw Hex)' };
 };
 
-export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficultyConfig }: EmulatorProps) {
+export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficultyConfig, palNtscConfig, onPalNtscUpdate }: EmulatorProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [syncStatus, setSyncStatus] = useState<string>('');
   const [debugPattern, setDebugPattern] = useState('');
@@ -86,6 +88,11 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficu
       // Handle Score Update (Memory Monitor)
       if (event.data?.type === 'SCORE_UPDATE' && typeof event.data.score === 'number') {
         onScoreUpdate?.(event.data.score, event.data.difficulty);
+      }
+
+      // Handle PAL/NTSC Update
+      if (event.data?.type === 'PALNTSC_UPDATE' && (event.data.standard === 'PAL' || event.data.standard === 'NTSC')) {
+        onPalNtscUpdate?.(event.data.standard);
       }
 
       // Handle Pause State
@@ -168,7 +175,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficu
             <>
                 <iframe 
                     ref={iframeRef}
-                    src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}${isAdmin ? '&debug=1' : ''}${difficultyConfig ? `&difficultyConfig=${encodeURIComponent(JSON.stringify(difficultyConfig))}` : ''}`}
+                    src={`/emulator.html?rom=${encodeURIComponent(romPath)}${scoreConfig ? `&scoreConfig=${encodeURIComponent(JSON.stringify(scoreConfig))}` : ''}${isAdmin ? '&debug=1' : ''}${difficultyConfig ? `&difficultyConfig=${encodeURIComponent(JSON.stringify(difficultyConfig))}` : ''}${palNtscConfig ? `&palNtscConfig=${encodeURIComponent(JSON.stringify(palNtscConfig))}` : ''}`}
                     className="w-full h-full border-0"
                     allow="autoplay; fullscreen; gamepad"
                     title="C64 Emulator"

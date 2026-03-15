@@ -12,6 +12,12 @@ interface ScoreConfig {
   endianness?: string;
 }
 
+interface PalNtscConfig {
+  address: string;
+  baseOffset?: string;
+  numStandards?: number;
+}
+
 interface GameFormData {
   title: string;
   platform: string;
@@ -27,8 +33,9 @@ interface GameFormData {
     numLevels: number;
     levelNames?: string;
   };
+  palNtscConfig: PalNtscConfig;
   scoreConfig: ScoreConfig;
-  [key: string]: string | number | ScoreConfig | { address: string; baseOffset: string; numLevels: number; };
+  [key: string]: string | number | ScoreConfig | { address: string; baseOffset: string; numLevels: number; } | PalNtscConfig;
 }
 
 interface GameFormProps {
@@ -63,6 +70,11 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       levelNames: Array.isArray(initialData.difficultyConfig?.levelNames) 
         ? initialData.difficultyConfig.levelNames.join(', ') 
         : (initialData.difficultyConfig?.levelNames || '')
+    },
+    palNtscConfig: {
+      address: initialData.palNtscConfig?.address || '',
+      baseOffset: initialData.palNtscConfig?.baseOffset || '',
+      numStandards: initialData.palNtscConfig?.numStandards || 2
     }
   });
   
@@ -87,6 +99,15 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
         difficultyConfig: {
           ...prev.difficultyConfig,
           [field]: field === 'numLevels' ? parseInt(value) || 1 : value
+        }
+      }));
+    } else if (name.startsWith('palNtscConfig.')) {
+      const field = name.split('.')[1];
+      setFormData((prev) => ({
+        ...prev,
+        palNtscConfig: {
+          ...prev.palNtscConfig,
+          [field]: field === 'numStandards' ? parseInt(value) || 2 : value
         }
       }));
     } else {
@@ -114,8 +135,13 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
               levelNames: formData.difficultyConfig.levelNames
                 ? (typeof formData.difficultyConfig.levelNames === 'string'
                     ? (formData.difficultyConfig.levelNames as string).split(',').map((s: string) => s.trim()).filter(Boolean)
-                    : formData.difficultyConfig.levelNames) // To handle any already arrayed ones if any somehow slip
+                    : formData.difficultyConfig.levelNames)
                 : []
+            }
+          : null,
+        palNtscConfig: formData.palNtscConfig?.address
+          ? {
+              ...formData.palNtscConfig
             }
           : null
       };
@@ -252,6 +278,26 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
             <label htmlFor="difficultyConfig.levelNames">Difficulty Names (Comma Separated, optional)</label>
             <input type="text" id="difficultyConfig.levelNames" name="difficultyConfig.levelNames" className="nes-input" value={formData.difficultyConfig?.levelNames || ''} onChange={handleChange} placeholder="Easy, Medium, Hard, Extreme" />
             <span className="text-xs text-gray-500 mt-1 block">Leave empty to use defaults (Easy, Medium, Hard...)</span>
+          </div>
+      </div>
+
+      <h3 className="mt-4 mb-2">PAL/NTSC Configuration</h3>
+      <div className="border p-4 rounded mb-4">
+          <div className="nes-field">
+            <label htmlFor="palNtscConfig.address">PAL/NTSC Memory Address (Hex, e.g. 0x2xxx)</label>
+            <input type="text" id="palNtscConfig.address" name="palNtscConfig.address" className="nes-input" value={formData.palNtscConfig?.address || ''} onChange={handleChange} placeholder="0x2xxx" />
+            <span className="text-xs text-gray-500 mt-1 block">Memory address where PAL/NTSC value is stored (0=PAL, 1=NTSC)</span>
+          </div>
+
+          <div className="nes-field">
+            <label htmlFor="palNtscConfig.baseOffset">Base Offset (Hex, Optional)</label>
+            <input type="text" id="palNtscConfig.baseOffset" name="palNtscConfig.baseOffset" className="nes-input" value={formData.palNtscConfig?.baseOffset || ''} onChange={handleChange} placeholder="0x0000" />
+          </div>
+
+          <div className="nes-field">
+            <label htmlFor="palNtscConfig.numStandards">Number of Standards</label>
+            <input type="number" id="palNtscConfig.numStandards" name="palNtscConfig.numStandards" className="nes-input" value={formData.palNtscConfig?.numStandards || 2} onChange={handleChange} min={2} max={2} />
+            <span className="text-xs text-gray-500 mt-1 block">Usually 2 (PAL and NTSC)</span>
           </div>
       </div>
 

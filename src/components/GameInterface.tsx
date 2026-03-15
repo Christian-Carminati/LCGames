@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Emulator } from '@/components/Emulator';
 import { ScoreBoard } from '@/components/ScoreBoard';
+import { CurrentScoreCard } from '@/components/CurrentScoreCard';
 
 interface GameInterfaceProps {
     gameSlug: string;
@@ -25,6 +26,7 @@ interface GameInterfaceProps {
     isAdmin?: boolean;
     youtubeUrl?: string;
     difficultyConfig?: { address: string; baseOffset?: string; numLevels?: number; levelNames?: string[] };
+    palNtscConfig?: { address: string; baseOffset?: string; numStandards?: number };
 }
 
 function getYouTubeEmbedUrl(url: string): string | null {
@@ -166,10 +168,12 @@ export function GameInterface({
     description,
     isAdmin,
     youtubeUrl,
-    difficultyConfig
+    difficultyConfig,
+    palNtscConfig
 }: GameInterfaceProps) {
     const [currentScore, setCurrentScore] = useState<number>(0);
     const [currentDifficulty, setCurrentDifficulty] = useState<number>(0);
+    const [currentStandard, setCurrentStandard] = useState<'PAL' | 'NTSC'>('PAL');
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
@@ -177,6 +181,10 @@ export function GameInterface({
         if (difficulty !== undefined) {
             setCurrentDifficulty(difficulty);
         }
+    };
+
+    const handlePalNtscUpdate = (standard: 'PAL' | 'NTSC') => {
+        setCurrentStandard(standard);
     };
 
     // Check warp settings on mount
@@ -259,6 +267,8 @@ export function GameInterface({
                                 onScoreUpdate={handleScoreUpdate}
                                 isAdmin={isAdmin}
                                 difficultyConfig={difficultyConfig}
+                                palNtscConfig={palNtscConfig}
+                                onPalNtscUpdate={handlePalNtscUpdate}
                             />
                         )}
                     </div>
@@ -312,10 +322,14 @@ export function GameInterface({
                     <div className="nes-container is-rounded is-dark with-title">
                         <p className="title">ACTIONS</p>
                          <div className="flex flex-col gap-3">
-                            {romPath ? (
+                            {isAdmin && romPath ? (
                                 <a href={romPath} download className="nes-btn is-success w-full">
                                     DOWNLOAD ROM
                                 </a>
+                            ) : romPath ? (
+                                <div className="nes-badge w-full">
+                                    <span className="is-warning w-full">ROM ADMIN-ONLY</span>
+                                </div>
                             ) : (
                                 <div className="nes-badge w-full">
                                     <span className="is-warning w-full">ROM MISSING</span>
@@ -326,12 +340,31 @@ export function GameInterface({
                 </div>
             </div>
 
-            {!isVideoOnlyGame && (
+            {!isVideoOnlyGame && scoreConfig && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <CurrentScoreCard 
+                        gameSlug={gameSlug}
+                        capturedScore={currentScore}
+                        hasDifficultyLevels={!!difficultyConfig}
+                        currentDifficulty={currentDifficulty}
+                        difficultyNames={difficultyConfig?.levelNames || []}
+                        hasPalNtsc={!!palNtscConfig}
+                        currentStandard={currentStandard}
+                        numDifficultyLevels={difficultyConfig?.numLevels || 1}
+                        romPath={romPath}
+                    />
+                    <ScoreBoard 
+                        gameSlug={gameSlug}
+                        hasDifficultyLevels={!!difficultyConfig}
+                        numDifficultyLevels={difficultyConfig?.numLevels || 1}
+                        difficultyNames={difficultyConfig?.levelNames || []}
+                    />
+                </div>
+            )}
+
+            {!isVideoOnlyGame && !scoreConfig && (
                 <ScoreBoard 
-                    gameSlug={gameSlug} 
-                    capturedScore={currentScore}
-                    isAutoTracked={!!scoreConfig}
-                    currentDifficulty={currentDifficulty}
+                    gameSlug={gameSlug}
                     hasDifficultyLevels={!!difficultyConfig}
                     numDifficultyLevels={difficultyConfig?.numLevels || 1}
                     difficultyNames={difficultyConfig?.levelNames || []}

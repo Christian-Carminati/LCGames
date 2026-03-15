@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
         romPath: data.romPath,
         youtubeUrl: data.youtubeUrl || undefined,
         scoreConfig: data.scoreConfig as Prisma.InputJsonValue | undefined,
-        difficultyConfig: data.difficultyConfig as Prisma.InputJsonValue | undefined
+        difficultyConfig: data.difficultyConfig as Prisma.InputJsonValue | undefined,
+        palNtscConfig: data.palNtscConfig as Prisma.InputJsonValue | undefined
       }
     });
 
