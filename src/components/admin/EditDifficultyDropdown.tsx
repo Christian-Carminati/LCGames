@@ -3,7 +3,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export function EditDifficultyDropdown({ scoreId, initialDifficulty = 0 }: { scoreId: string, initialDifficulty?: number }) {
+export function EditDifficultyDropdown({ 
+  scoreId, 
+  initialDifficulty = 0,
+  hasPalNtsc = false,
+  numDifficultyLevels = 1
+}: { 
+  scoreId: string, 
+  initialDifficulty?: number,
+  hasPalNtsc?: boolean,
+  numDifficultyLevels?: number
+}) {
   const router = useRouter();
   const [difficulty, setDifficulty] = useState<number>(initialDifficulty);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -35,20 +45,27 @@ export function EditDifficultyDropdown({ scoreId, initialDifficulty = 0 }: { sco
     }
   };
 
+  const options: React.ReactNode[] = [];
+  const standards = hasPalNtsc ? ['PAL', 'NTSC'] : [''];
+  
+  standards.forEach((std, stdIdx) => {
+      const maxLevels = Math.max(1, numDifficultyLevels);
+      for (let d = 0; d < maxLevels; d++) {
+          const val = d + (stdIdx * maxLevels);
+          const labelStr = `Lvl ${d}${std ? ` (${std})` : ''}`;
+          options.push(<option key={val} value={val}>{labelStr}</option>);
+      }
+  });
+
   return (
-    <div className="nes-select is-small w-32">
+    <div className="nes-select is-small w-40">
       <select 
         value={difficulty} 
         onChange={handleChange} 
         disabled={isUpdating}
         className="text-xs py-1"
       >
-        <option value={0}>Lvl 0</option>
-        <option value={1}>Lvl 1</option>
-        <option value={2}>Lvl 2</option>
-        <option value={3}>Lvl 3</option>
-        <option value={4}>Lvl 4</option>
-        <option value={5}>Lvl 5</option>
+        {options}
       </select>
     </div>
   );

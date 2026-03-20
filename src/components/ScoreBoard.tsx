@@ -35,9 +35,9 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
       setLoading(true);
       try {
         let diffParam = '';
-        if (hasDifficultyLevels) {
+        if (hasDifficultyLevels || hasPalNtsc) {
           // Calculate combined difficulty: base difficulty + offset for PAL/NTSC
-          const baseDifficulty = selectedDifficulty;
+          const baseDifficulty = hasDifficultyLevels ? selectedDifficulty : 0;
           const standardOffset = hasPalNtsc && selectedStandard === 'NTSC' ? numDifficultyLevels : 0;
           const combinedDifficulty = baseDifficulty + standardOffset;
           diffParam = `&difficulty=${combinedDifficulty}`;

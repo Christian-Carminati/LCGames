@@ -11,6 +11,16 @@ export default async function AdminScoresPage(props: {
 }) {
   const params = await props.searchParams;
   
+  // Fetch games for configs
+  const games = await prisma.game.findMany({
+      select: {
+          slug: true,
+          difficultyConfig: true,
+          palNtscConfig: true
+      }
+  });
+  const gameMap = new Map((games as any[]).map(g => [g.slug, g]));
+
   // Fetch all scores with user data
   const rawScores = await prisma.score.findMany({
     include: {
@@ -95,20 +105,32 @@ export default async function AdminScoresPage(props: {
             </tr>
           </thead>
           <tbody>
-            {allScores.map((item: any) => (
+            {allScores.map((item: any) => {
+                const gameInfo = gameMap.get(item.gameSlug);
+                const hasPalNtsc = !!gameInfo?.palNtscConfig;
+                const difficultyConfig = gameInfo?.difficultyConfig as { numLevels?: number } | null;
+                const numDifficultyLevels = difficultyConfig?.numLevels || 1;
+
+                return (
                 <tr key={item.id}>
                   <td>{item.gameSlug}</td>
                   <td>{item.name}</td>
                   <td>{item.score}</td>
                   <td>
-                    <EditDifficultyDropdown scoreId={item.id} initialDifficulty={item.difficulty} />
+                    <EditDifficultyDropdown 
+                        scoreId={item.id} 
+                        initialDifficulty={item.difficulty} 
+                        hasPalNtsc={hasPalNtsc}
+                        numDifficultyLevels={numDifficultyLevels}
+                    />
                   </td>
                   <td>{item.date}</td>
                   <td>
                     <DeleteScoreButton scoreId={item.id} />
                   </td>
                 </tr>
-            ))}
+                );
+            })}
             {allScores.length === 0 && (
                 <tr>
                     <td colSpan={6} className="text-center">No scores found.</td>

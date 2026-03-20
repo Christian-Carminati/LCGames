@@ -48,10 +48,10 @@ export function CurrentScoreCard({
   };
 
   const calculateCombinedDifficulty = useCallback((): number => {
-    if (!hasDifficultyLevels) return 0;
-    const baseDifficulty = hasPalNtsc ? numDifficultyLevels : 0;
-    const standardOffset = selectedStandard === 'NTSC' ? numDifficultyLevels : 0;
-    return selectedDifficulty + baseDifficulty + standardOffset;
+    if (!hasDifficultyLevels && !hasPalNtsc) return 0;
+    const baseDifficulty = hasDifficultyLevels ? selectedDifficulty : 0;
+    const standardOffset = (hasPalNtsc && selectedStandard === 'NTSC') ? numDifficultyLevels : 0;
+    return baseDifficulty + standardOffset;
   }, [hasDifficultyLevels, hasPalNtsc, numDifficultyLevels, selectedDifficulty, selectedStandard]);
 
   useEffect(() => {
