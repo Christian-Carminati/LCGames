@@ -15,7 +15,7 @@ export function NotificationToast({ message, type, onClose }: NotificationToastP
   };
 
   return (
-    <div className={`nes-container is-rounded ${getContainerClass()} pointer-events-auto min-w-[300px] shadow-lg animate-fade-in-up`}>
+    <div className={`nes-container is-rounded bg-white text-black ${getContainerClass()} pointer-events-auto min-w-[300px] shadow-lg animate-fade-in-up z-50`}>
       <div className="flex justify-between items-start gap-4">
         <p className="text-sm">{message}</p>
         <button type="button" className="nes-btn is-error is-small scale-75 origin-top-right" onClick={onClose}>

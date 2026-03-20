@@ -18,8 +18,11 @@ export function EditDifficultyDropdown({
   const [difficulty, setDifficulty] = useState<number>(initialDifficulty);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newDifficulty = parseInt(e.target.value, 10);
+  const maxLevels = Math.max(1, numDifficultyLevels);
+  const currentLevel = difficulty % maxLevels;
+  const currentSystemIdx = Math.floor(difficulty / maxLevels);
+
+  const updateDifficulty = async (newDifficulty: number) => {
     setDifficulty(newDifficulty);
     setIsUpdating(true);
 
@@ -45,28 +48,58 @@ export function EditDifficultyDropdown({
     }
   };
 
-  const options: React.ReactNode[] = [];
-  const standards = hasPalNtsc ? ['PAL', 'NTSC'] : [''];
-  
-  standards.forEach((std, stdIdx) => {
-      const maxLevels = Math.max(1, numDifficultyLevels);
-      for (let d = 0; d < maxLevels; d++) {
-          const val = d + (stdIdx * maxLevels);
-          const labelStr = `Lvl ${d}${std ? ` (${std})` : ''}`;
-          options.push(<option key={val} value={val}>{labelStr}</option>);
-      }
-  });
+  const handleLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLevel = parseInt(e.target.value, 10);
+    const newDifficulty = newLevel + (currentSystemIdx * maxLevels);
+    updateDifficulty(newDifficulty);
+  };
+
+  const handleSystemChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newSystemIdx = parseInt(e.target.value, 10);
+    const newDifficulty = currentLevel + (newSystemIdx * maxLevels);
+    updateDifficulty(newDifficulty);
+  };
+
+  const levelOptions: React.ReactNode[] = [];
+  for (let d = 0; d < maxLevels; d++) {
+      levelOptions.push(<option key={d} value={d}>Lvl {d}</option>);
+  }
+
+  const systemOptions: React.ReactNode[] = [
+    <option key={0} value={0}>PAL</option>,
+    <option key={1} value={1}>NTSC</option>,
+  ];
 
   return (
-    <div className="nes-select is-small w-40">
-      <select 
-        value={difficulty} 
-        onChange={handleChange} 
-        disabled={isUpdating}
-        className="text-xs py-1"
-      >
-        {options}
-      </select>
-    </div>
+    <>
+      <td>
+        <div className="nes-select is-dark is-small w-28">
+          <select 
+            value={currentLevel} 
+            onChange={handleLevelChange} 
+            disabled={isUpdating}
+            className="text-xs py-1 bg-gray-800 text-white"
+          >
+            {levelOptions}
+          </select>
+        </div>
+      </td>
+      <td>
+        {hasPalNtsc ? (
+          <div className="nes-select is-dark is-small w-28">
+            <select 
+              value={currentSystemIdx} 
+              onChange={handleSystemChange} 
+              disabled={isUpdating}
+              className="text-xs py-1 bg-gray-800 text-white"
+            >
+              {systemOptions}
+            </select>
+          </div>
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
+      </td>
+    </>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function ScoreControls({ games }: { games: string[] }) {
+export default function ScoreControls({ games }: { games: {slug: string, title: string}[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentGame = searchParams.get('game') || '';
@@ -15,6 +15,7 @@ export default function ScoreControls({ games }: { games: string[] }) {
     } else {
       params.delete('game');
     }
+    params.delete('page'); // Clear page filter
     router.push(`/admin/scores?${params.toString()}`);
   };
 
@@ -26,7 +27,7 @@ export default function ScoreControls({ games }: { games: string[] }) {
           <select id="game_select" value={currentGame} onChange={handleGameChange}>
             <option value="">All Games</option>
             {games.map(game => (
-              <option key={game} value={game}>{game}</option>
+              <option key={game.slug} value={game.slug}>{game.title}</option>
             ))}
           </select>
         </div>
