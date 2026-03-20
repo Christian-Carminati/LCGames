@@ -1,9 +1,9 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 
 function getScoreSecret(): string {
-  const secret = process.env.SCORE_SECRET;
+  const secret = process.env.NEXT_PUBLIC_SCORE_SECRET || process.env.SCORE_SECRET;
   if (!secret) {
-    throw new Error('SCORE_SECRET environment variable is not set');
+    throw new Error('NEXT_PUBLIC_SCORE_SECRET or SCORE_SECRET environment variable is not set');
   }
   return secret;
 }
