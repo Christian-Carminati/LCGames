@@ -4,10 +4,6 @@ import { requireAdminAuth } from '@/lib/admin-auth';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_EXTENSIONS = ['.d64', '.t64', '.prg', '.tap', '.crt', '.sid'];
-const ALLOWED_MIME_TYPES = [
-  'application/octet-stream',
-  'application/x-commodore-64-emulator',
-];
 
 export async function POST(req: NextRequest) {
   const authError = requireAdminAuth(req);
@@ -40,10 +36,7 @@ export async function POST(req: NextRequest) {
         );
     }
 
-    // Validate MIME type
-    if (!ALLOWED_MIME_TYPES.includes(file.type) && file.type !== '') {
-        return NextResponse.json({ error: 'Invalid MIME type' }, { status: 400 });
-    }
+    // Validate MIME type removed - relying on extension check is safer for obscure ROM formats
 
     // Sanitize filename
     const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');

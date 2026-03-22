@@ -19,7 +19,16 @@ export default async function Home() {
         </div>
       </div>
 
-      <div className="nes-container is-dark with-title is-rounded max-w-2xl w-full mt-12">
+      <div className="nes-container is-dark with-title is-rounded max-w-2xl w-full mt-12 mb-4">
+        <p className="title">Credits</p>
+        <div className="flex flex-col gap-2 text-sm text-gray-300">
+           <p><span className="text-c64-text">Site Developer:</span> Christian Carminati</p>
+           <p><span className="text-c64-text">Game Developer:</span> Luca Carminati</p>
+           <p><span className="text-c64-text">Tester:</span> Stefano Carminati</p>
+        </div>
+      </div>
+
+      <div className="nes-container is-dark with-title is-rounded max-w-2xl w-full mt-4">
         <p className="title">Project Initialization</p>
         <p>LC-Games Archive loaded successfully.</p>
         <div className="mt-4 flex gap-4 justify-center">

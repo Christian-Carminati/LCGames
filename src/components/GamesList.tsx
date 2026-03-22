@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GameCard } from '@/components/GameCard';
 
 interface Game {
@@ -19,6 +19,18 @@ interface GamesListProps {
 
 export function GamesList({ games }: GamesListProps) {
   const [filter, setFilter] = useState<'ALL' | 'C64' | 'PC' | 'AMIGA'>('ALL');
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem('arcade_filter');
+    if (saved && ['ALL', 'C64', 'PC', 'AMIGA'].includes(saved)) {
+      setFilter(saved as 'ALL' | 'C64' | 'PC' | 'AMIGA');
+    }
+  }, []);
+
+  const handleFilterChange = (newFilter: 'ALL' | 'C64' | 'PC' | 'AMIGA') => {
+    setFilter(newFilter);
+    sessionStorage.setItem('arcade_filter', newFilter);
+  };
 
   const filteredGames = games.filter(game => {
     if (filter === 'ALL') return true;
@@ -39,28 +51,28 @@ export function GamesList({ games }: GamesListProps) {
             <button 
                 type="button" 
                 className={`nes-btn ${filter === 'ALL' ? 'is-primary' : ''}`}
-                onClick={() => setFilter('ALL')}
+                onClick={() => handleFilterChange('ALL')}
             >
                 ALL
             </button>
             <button 
                 type="button" 
                 className={`nes-btn ${filter === 'C64' ? 'is-primary' : ''}`}
-                onClick={() => setFilter('C64')}
+                onClick={() => handleFilterChange('C64')}
             >
                 C64
             </button>
             <button 
                 type="button" 
                 className={`nes-btn ${filter === 'PC' ? 'is-primary' : ''}`}
-                onClick={() => setFilter('PC')}
+                onClick={() => handleFilterChange('PC')}
             >
                 PC
             </button>
              <button 
                 type="button" 
                 className={`nes-btn ${filter === 'AMIGA' ? 'is-primary' : ''}`}
-                onClick={() => setFilter('AMIGA')}
+                onClick={() => handleFilterChange('AMIGA')}
             >
                 AMIGA
             </button>

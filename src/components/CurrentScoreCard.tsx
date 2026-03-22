@@ -122,64 +122,10 @@ export function CurrentScoreCard({
       </div>
 
       {hasDifficultyLevels && numDifficultyLevels > 1 && (
-        <div className="mb-4 flex flex-col gap-3">
-          <div className="flex justify-center gap-2">
-            {numDifficultyLevels <= 5 ? (
-              Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className={`nes-btn ${selectedDifficulty === d ? 'is-primary' : 'is-disabled'} cursor-default`}
-                  disabled
-                  style={{ fontSize: '0.65rem', padding: '4px 8px' }}
-                >
-                  {getDifficultyName(d).toUpperCase()}
-                </button>
-              ))
-            ) : (
-              <div className="nes-select is-dark w-full">
-                <select
-                  required
-                  value={selectedDifficulty}
-                  disabled
-                  className="text-xs"
-                >
-                  {Array.from({ length: numDifficultyLevels }, (_, i) => i).map((d) => (
-                    <option key={d} value={d}>
-                      {getDifficultyName(d).toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {hasPalNtsc && (
-            <div className="flex justify-center gap-2">
-              <button
-                type="button"
-                className={`nes-btn ${selectedStandard === 'PAL' ? 'is-success' : 'is-disabled'} cursor-default`}
-                disabled
-                style={{ fontSize: '0.65rem', padding: '4px 8px' }}
-              >
-                PAL
-              </button>
-              <button
-                type="button"
-                className={`nes-btn ${selectedStandard === 'NTSC' ? 'is-success' : 'is-disabled'} cursor-default`}
-                disabled
-                style={{ fontSize: '0.65rem', padding: '4px 8px' }}
-              >
-                NTSC
-              </button>
-            </div>
-          )}
-
-          {hasDifficultyLevels && (
-            <p className="text-xs text-yellow-400 text-center">
-              DIFFICULTY: {getDifficultyLabel()}
-            </p>
-          )}
+        <div className="mb-4">
+          <p className="text-xs text-yellow-400 text-center">
+            DIFFICULTY: {getDifficultyLabel()}
+          </p>
         </div>
       )}
 

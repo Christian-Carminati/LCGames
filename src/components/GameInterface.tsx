@@ -319,24 +319,22 @@ export function GameInterface({
                         </div>
                     </div>
 
-                    <div className="nes-container is-rounded is-dark with-title">
-                        <p className="title">ACTIONS</p>
-                         <div className="flex flex-col gap-3">
-                            {isAdmin && romPath ? (
-                                <a href={romPath} download className="nes-btn is-success w-full">
-                                    DOWNLOAD ROM
-                                </a>
-                            ) : romPath ? (
-                                <div className="nes-badge w-full">
-                                    <span className="is-warning w-full">ROM ADMIN-ONLY</span>
-                                </div>
-                            ) : (
-                                <div className="nes-badge w-full">
-                                    <span className="is-warning w-full">ROM MISSING</span>
-                                </div>
-                            )}
-                         </div>
-                    </div>
+                    {isAdmin && (
+                        <div className="nes-container is-rounded is-dark with-title">
+                            <p className="title">ACTIONS</p>
+                             <div className="flex flex-col gap-3">
+                                {romPath ? (
+                                    <a href={romPath} download className="nes-btn is-success w-full">
+                                        DOWNLOAD ROM
+                                    </a>
+                                ) : (
+                                    <div className="nes-badge w-full">
+                                        <span className="is-warning w-full">ROM MISSING</span>
+                                    </div>
+                                )}
+                             </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
