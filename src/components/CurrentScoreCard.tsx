@@ -16,6 +16,7 @@ interface CurrentScoreCardProps {
   currentStandard?: 'PAL' | 'NTSC';
   numDifficultyLevels?: number;
   romPath?: string | null;
+  onScoreSaved?: () => void;
 }
 
 export function CurrentScoreCard({
@@ -27,7 +28,8 @@ export function CurrentScoreCard({
   hasPalNtsc = false,
   currentStandard = 'PAL',
   numDifficultyLevels = 1,
-  romPath
+  romPath,
+  onScoreSaved
 }: CurrentScoreCardProps) {
   const { data: session } = useSession();
   const [submitting, setSubmitting] = useState(false);
@@ -91,6 +93,9 @@ export function CurrentScoreCard({
 
       if (res.ok) {
         showNotification("Score Saved!", "success");
+        if (onScoreSaved) {
+          onScoreSaved();
+        }
       } else {
         const errorData = await res.json();
         showNotification(errorData.error || "Failed to save score.", "error");

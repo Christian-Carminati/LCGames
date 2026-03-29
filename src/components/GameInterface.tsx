@@ -175,6 +175,7 @@ export function GameInterface({
     const [currentDifficulty, setCurrentDifficulty] = useState<number>(0);
     const [currentStandard, setCurrentStandard] = useState<'PAL' | 'NTSC'>('PAL');
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
+    const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
         setCurrentScore(score);
@@ -185,6 +186,10 @@ export function GameInterface({
 
     const handlePalNtscUpdate = (standard: 'PAL' | 'NTSC') => {
         setCurrentStandard(standard);
+    };
+
+    const handleScoreSaved = () => {
+        setScoreRefreshKey((prev) => prev + 1);
     };
 
     // Check warp settings on mount
@@ -350,6 +355,7 @@ export function GameInterface({
                         currentStandard={currentStandard}
                         numDifficultyLevels={difficultyConfig?.numLevels || 1}
                         romPath={romPath}
+                        onScoreSaved={handleScoreSaved}
                     />
                     <ScoreBoard 
                         gameSlug={gameSlug}
@@ -358,6 +364,7 @@ export function GameInterface({
                         difficultyNames={difficultyConfig?.levelNames || []}
                         hasPalNtsc={!!palNtscConfig}
                         currentStandard={currentStandard}
+                        refreshKey={scoreRefreshKey}
                     />
                 </div>
             )}
@@ -370,6 +377,7 @@ export function GameInterface({
                     difficultyNames={difficultyConfig?.levelNames || []}
                     hasPalNtsc={!!palNtscConfig}
                     currentStandard={currentStandard}
+                    refreshKey={scoreRefreshKey}
                 />
             )}
         </div>

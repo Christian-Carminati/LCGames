@@ -16,9 +16,10 @@ interface ScoreBoardProps {
   difficultyNames?: string[];
   hasPalNtsc?: boolean;
   currentStandard?: 'PAL' | 'NTSC';
+  refreshKey?: number;
 }
 
-export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [], hasPalNtsc = false, currentStandard = 'PAL' }: ScoreBoardProps) {
+export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [], hasPalNtsc = false, currentStandard = 'PAL', refreshKey }: ScoreBoardProps) {
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
@@ -70,7 +71,7 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
     return () => {
       active = false;
     };
-  }, [gameSlug, selectedDifficulty, hasDifficultyLevels, selectedStandard, hasPalNtsc, numDifficultyLevels]);
+  }, [gameSlug, selectedDifficulty, hasDifficultyLevels, selectedStandard, hasPalNtsc, numDifficultyLevels, refreshKey]);
 
   const getDifficultyName = (levelIndex: number): string => {
     if (difficultyNames[levelIndex]) {

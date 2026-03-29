@@ -49,6 +49,11 @@ body {
 }
 
 /* Custom NES.css overrides */
+.nes-container.is-rounded,
+.nes-container.is-rounded.is-dark {
+  border-image-repeat: stretch !important;
+}
+
 .nes-btn.is-primary {
   background-color: #6c5eb5;
   border-color: #ffffff;
