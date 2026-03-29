@@ -25,32 +25,6 @@
         opacity: 0 !important;
         visibility: hidden !important;
       }
-
-      /* Anti-Cheat: Hide Save/Load State UI (prevents cheating via state files) */
-      .ejs-menu-save,
-      .ejs-menu-load,
-      #ejs-menu-save,
-      #ejs-menu-load,
-      .menu-item-save,
-      .menu-item-load,
-      div[title*="Save State"],
-      div[title*="Load State"],
-      div[title*="save state"],
-      div[title*="load state"],
-      button[onclick*="saveState"],
-      button[onclick*="loadState"],
-      .ejs-save,
-      .ejs-load,
-      .ejs-opt-save,
-      .ejs-opt-load {
-        display: none !important;
-        pointer-events: none !important;
-        opacity: 0 !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
-      }
     </style>
   </head>
   <body>
@@ -140,9 +114,9 @@
               "21": { "value": 74, "value2": "RIGHT_STICK_X:-1" },
               "22": { "value": 75, "value2": "RIGHT_STICK_Y:+1" },
               "23": { "value": 73, "value2": "RIGHT_STICK_Y:-1" },
-              "24": { "value": 49 },
-              "25": { "value": 50 },
-              "26": { "value": 51 },
+              "24": { "value": 0 },
+              "25": { "value": 0 },
+              "26": { "value": 0 },
               "27": { "value": 0 },
               "28": { "value": 0 },
               "29": { "value": 0 }
@@ -191,32 +165,18 @@
         window.EJS_forceLegacyKeyboard = true;
         window.EJS_loadStateURL = null;
         window.EJS_cheats = [];
+        window.EJS_Buttons = {
+          saveState: false,
+          loadState: false,
+          quickSave: false,
+          quickLoad: false,
+          saveSavFiles: false,
+          loadSavFiles: false,
+          cheat: false,
+        };
         window.EJS_gameParentUrl = window.location.href;
         window.EJS_gameID = "1";
-        window.EJS_saveStateLocation = null;
-        window.EJS_disableSaveMenu = true;
-        window.EJS_disableLoadMenu = true;
-        window.EJS_disableState = true;
-
-        // Anti-Cheat: Clear any existing save states for this ROM from localStorage
-        // This prevents cheaters from using previously saved states
-        try {
-          // Clear all EmulatorJS-specific save state keys
-          const keysToRemove = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (key.includes('ejs-') || key.includes('save') || key.includes('state'))) {
-              keysToRemove.push(key);
-            }
-          }
-          keysToRemove.forEach(key => {
-            localStorage.removeItem(key);
-            console.log('[ANTI-CHEAT] Cleared localStorage key:', key);
-          });
-          console.log('[ANTI-CHEAT] Cleared', keysToRemove.length, 'save state keys');
-        } catch (e) {
-          console.warn('[ANTI-CHEAT] Could not clear localStorage:', e);
-        }
+        window.EJS_saveStateLocation = "local";
 
         // Load the EmulatorJS Loader
         const script = document.createElement("script");
@@ -224,21 +184,12 @@
         script.async = true;
         document.body.appendChild(script);
 
-        // Anti-Cheat: Observers to aggressively remove cheat-related and save/load state elements
+        // Anti-Cheat: Observers to aggressively remove cheat-related elements
         const observer = new MutationObserver(() => {
-          // Remove cheat elements
           const cheatEls = document.querySelectorAll(
             '[title*="Cheat"], [title*="cheat"], .ejs-menu-cheats, #ejs-menu-cheats, .ejs-opt-cheats',
           );
           cheatEls.forEach((el) => el.remove());
-          
-          // Remove save/load state elements
-          const stateEls = document.querySelectorAll(
-            '.ejs-menu-save, .ejs-menu-load, #ejs-menu-save, #ejs-menu-load',
-            '.menu-item-save, .menu-item-load, .ejs-save, .ejs-load',
-            '.ejs-opt-save, .ejs-opt-load'
-          );
-          stateEls.forEach((el) => el.remove());
         });
         observer.observe(document.body, { childList: true, subtree: true });
 
