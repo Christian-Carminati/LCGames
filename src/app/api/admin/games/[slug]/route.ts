@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireAdminAuth } from '@/lib/admin-auth';
+import { GameSchema } from '@/lib/validations';
+import type { Prisma } from '@prisma/client';
 
 export async function GET(
   request: NextRequest,
@@ -38,7 +40,15 @@ export async function PUT(
   try {
     const { slug } = params;
     const body = await request.json();
-    
+
+    const result = GameSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
     const existing = await prisma.game.findUnique({ where: { slug } });
     if (!existing) {
        return NextResponse.json({ error: 'Game not found' }, { status: 404 });
@@ -47,17 +57,18 @@ export async function PUT(
     const updated = await prisma.game.update({
       where: { slug },
       data: {
-        title: body.title,
-        description: body.description,
-        platform: body.platform,
-        genre: body.genre,
-        imageUrl: body.imageUrl,
-        url: body.url,
-        romPath: body.romPath,
-        youtubeUrl: body.youtubeUrl || null,
-        scoreConfig: body.scoreConfig ? body.scoreConfig : undefined,
-        difficultyConfig: body.difficultyConfig !== undefined ? body.difficultyConfig : undefined,
-        palNtscConfig: body.palNtscConfig !== undefined ? body.palNtscConfig : undefined
+        title: result.data.title,
+        description: result.data.description,
+        platform: result.data.platform,
+        genre: result.data.genre,
+        imageUrl: result.data.imageUrl || undefined,
+        url: result.data.url || undefined,
+        romPath: result.data.romPath,
+        youtubeUrl: result.data.youtubeUrl || undefined,
+        scoreConfig: result.data.scoreConfig as Prisma.InputJsonValue | undefined,
+        difficultyConfig: result.data.difficultyConfig as Prisma.InputJsonValue | undefined,
+        palNtscConfig: result.data.palNtscConfig as Prisma.InputJsonValue | undefined,
+        published: result.data.published ?? true
       }
     });
 

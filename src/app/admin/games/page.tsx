@@ -25,6 +25,7 @@ export default async function AdminGamesPage() {
             <tr>
               <th>Title</th>
               <th>Platform</th>
+              <th>Published</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -34,6 +35,7 @@ export default async function AdminGamesPage() {
                 <tr key={game.slug}>
                   <td>{game.title}</td>
                   <td>{game.platform}</td>
+                  <td>{game.published ? 'Yes' : 'No'}</td>
                   <td className="flex gap-2">
                     <Link href={`/admin/games/${game.slug}`} className="nes-btn is-primary">
                       Edit

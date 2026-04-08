@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function GamesPage() {
   const games = await prisma.game.findMany({
+    where: { published: true },
     orderBy: { title: 'asc' }
   });
 

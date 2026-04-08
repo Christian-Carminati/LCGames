@@ -27,6 +27,7 @@ interface GameFormData {
   imageUrl: string;
   romPath: string;
   youtubeUrl: string;
+  published: boolean;
   difficultyConfig: {
     address: string;
     baseOffset: string;
@@ -35,7 +36,7 @@ interface GameFormData {
   };
   palNtscConfig: PalNtscConfig;
   scoreConfig: ScoreConfig;
-  [key: string]: string | number | ScoreConfig | { address: string; baseOffset: string; numLevels: number; } | PalNtscConfig;
+  [key: string]: string | number | boolean | ScoreConfig | { address: string; baseOffset: string; numLevels: number; } | PalNtscConfig;
 }
 
 interface GameFormProps {
@@ -47,13 +48,14 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
   const router = useRouter();
   const [formData, setFormData] = useState<GameFormData>({
     title: '',
-    platform: 'C64',
+    platform: 'C64 LC-Games',
     genre: '',
     description: '',
     url: '',
     imageUrl: '',
     romPath: '',
     youtubeUrl: '',
+    published: initialData.published ?? true,
     scoreConfig: {
       address: '',
       type: 'byte',
@@ -80,6 +82,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [uploadStatus, setUploadStatus] = useState<{type: 'success' | 'error' | null, message: string}>({type: null, message: ''});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -121,8 +124,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
     setError('');
 
     try {
-      const url = isEdit 
-        ? `/api/admin/games/${slugify(initialData.title || '')}` 
+      const url = isEdit
+        ? `/api/admin/games/${initialData.slug || slugify(formData.title)}`
         : '/api/admin/games';
       
       const method = isEdit ? 'PUT' : 'POST';
@@ -180,9 +183,11 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
         <label htmlFor="platform">Platform</label>
         <div className="nes-select">
           <select required id="platform" name="platform" value={formData.platform} onChange={handleChange}>
-            <option value="C64">C64</option>
+            <option value="C64 LC-Games">C64 LC-Games</option>
+            <option value="C64 Arcade">C64 Arcade</option>
             <option value="Amiga">Amiga</option>
             <option value="PC">PC</option>
+            <option value="NES">NES</option>
           </select>
         </div>
       </div>
@@ -206,7 +211,21 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
         <label htmlFor="imageUrl">Image URL</label>
         <input type="url" id="imageUrl" name="imageUrl" className="nes-input" value={formData.imageUrl} onChange={handleChange} />
       </div>
-      
+
+      <div className="nes-field">
+        <label htmlFor="published" className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            id="published"
+            name="published"
+            checked={formData.published}
+            onChange={(e) => setFormData(prev => ({ ...prev, published: e.target.checked }))}
+            className="nes-checkbox"
+          />
+          <span>Published (visible to public)</span>
+        </label>
+      </div>
+
       <div className="nes-field">
         <label htmlFor="romPath">ROM Path (e.g. /roms/game.d64)</label>
         <div className="flex gap-2">
@@ -233,13 +252,13 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
                         
                         if (res.ok) {
                             setFormData(prev => ({ ...prev, romPath: data.path }));
-                            alert('ROM Uploaded!');
+                            setUploadStatus({ type: 'success', message: 'ROM Uploaded!' });
                         } else {
-                            alert('Upload failed: ' + data.error);
+                            setUploadStatus({ type: 'error', message: data.error || 'Upload failed' });
                         }
                     } catch (err) {
                         console.error(err);
-                        alert('Upload error');
+                        setUploadStatus({ type: 'error', message: 'Upload error' });
                     } finally {
                         setIsSubmitting(false);
                         // Reset input
@@ -251,6 +270,12 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
                 Upload
             </label>
         </div>
+        {uploadStatus.type === 'success' && (
+          <p className="text-sm text-green-400 mt-1">{uploadStatus.message}</p>
+        )}
+        {uploadStatus.type === 'error' && (
+          <p className="text-sm text-red-400 mt-1">{uploadStatus.message}</p>
+        )}
       </div>
 
       <div className="nes-field">

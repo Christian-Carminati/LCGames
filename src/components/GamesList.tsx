@@ -18,25 +18,27 @@ interface GamesListProps {
 }
 
 export function GamesList({ games }: GamesListProps) {
-  const [filter, setFilter] = useState<'ALL' | 'C64' | 'PC' | 'AMIGA'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'C64_LC_GAMES' | 'C64_ARCADE' | 'PC' | 'AMIGA' | 'NES'>('ALL');
 
   useEffect(() => {
     const saved = sessionStorage.getItem('arcade_filter');
-    if (saved && ['ALL', 'C64', 'PC', 'AMIGA'].includes(saved)) {
-      setFilter(saved as 'ALL' | 'C64' | 'PC' | 'AMIGA');
+    if (saved && ['ALL', 'C64_LC_GAMES', 'C64_ARCADE', 'PC', 'AMIGA', 'NES'].includes(saved)) {
+      setFilter(saved as 'ALL' | 'C64_LC_GAMES' | 'C64_ARCADE' | 'PC' | 'AMIGA' | 'NES');
     }
   }, []);
 
-  const handleFilterChange = (newFilter: 'ALL' | 'C64' | 'PC' | 'AMIGA') => {
+  const handleFilterChange = (newFilter: 'ALL' | 'C64_LC_GAMES' | 'C64_ARCADE' | 'PC' | 'AMIGA' | 'NES') => {
     setFilter(newFilter);
     sessionStorage.setItem('arcade_filter', newFilter);
   };
 
   const filteredGames = games.filter(game => {
     if (filter === 'ALL') return true;
-    if (filter === 'C64') return game.platform === 'C64';
+    if (filter === 'C64_LC_GAMES') return game.platform === 'C64 LC-Games';
+    if (filter === 'C64_ARCADE') return game.platform === 'C64 Arcade';
     if (filter === 'PC') return game.platform === 'PC';
     if (filter === 'AMIGA') return game.platform === 'Amiga';
+    if (filter === 'NES') return game.platform === 'NES';
     return true;
   });
 
@@ -55,26 +57,40 @@ export function GamesList({ games }: GamesListProps) {
             >
                 ALL
             </button>
-            <button 
-                type="button" 
-                className={`nes-btn ${filter === 'C64' ? 'is-primary' : ''}`}
-                onClick={() => handleFilterChange('C64')}
+            <button
+                type="button"
+                className={`nes-btn ${filter === 'C64_LC_GAMES' ? 'is-primary' : ''}`}
+                onClick={() => handleFilterChange('C64_LC_GAMES')}
             >
-                C64
+                C64 LC-GAMES
             </button>
-            <button 
-                type="button" 
+            <button
+                type="button"
+                className={`nes-btn ${filter === 'C64_ARCADE' ? 'is-primary' : ''}`}
+                onClick={() => handleFilterChange('C64_ARCADE')}
+            >
+                C64 ARCADE
+            </button>
+            <button
+                type="button"
                 className={`nes-btn ${filter === 'PC' ? 'is-primary' : ''}`}
                 onClick={() => handleFilterChange('PC')}
             >
                 PC
             </button>
-             <button 
-                type="button" 
+             <button
+                type="button"
                 className={`nes-btn ${filter === 'AMIGA' ? 'is-primary' : ''}`}
                 onClick={() => handleFilterChange('AMIGA')}
             >
                 AMIGA
+            </button>
+            <button
+                type="button"
+                className={`nes-btn ${filter === 'NES' ? 'is-primary' : ''}`}
+                onClick={() => handleFilterChange('NES')}
+            >
+                NES
             </button>
         </div>
 

@@ -194,11 +194,16 @@ export function GameInterface({
 
     // Check warp settings on mount
     useEffect(() => {
-        if (platform === 'C64' || platform === 'COMMODORE 64') {
+        if (platform === 'C64 LC-Games' || platform === 'C64 Arcade' || platform === 'C64' || platform === 'COMMODORE 64') {
             const status = checkWarpSettings(romPath);
             setWarpStatus(status);
         }
     }, [romPath, platform]);
+
+    // Reset score when difficulty or PAL/NTSC changes to prevent cheating
+    useEffect(() => {
+        setCurrentScore(0);
+    }, [currentDifficulty, currentStandard]);
 
     const handleEnableWarpAndRefresh = () => {
         enableWarpSettings(romPath);
@@ -207,7 +212,7 @@ export function GameInterface({
 
     const isVideoOnlyGame = platform === 'PC' || (typeof platform === 'string' && platform.toUpperCase() === 'AMIGA' && !!youtubeUrl);
     const embedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl) : null;
-    const isC64 = platform === 'C64' || platform === 'COMMODORE 64';
+    const isC64 = platform === 'C64 LC-Games' || platform === 'C64 Arcade' || platform === 'C64' || platform === 'COMMODORE 64';
     // const showWarpWarning = isC64 && !warpStatus.enabled && !isVideoOnlyGame && romPath;
 
     return (

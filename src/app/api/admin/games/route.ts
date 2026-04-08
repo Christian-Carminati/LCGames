@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         slug,
         title: data.title,
         description: data.description,
-        platform: data.platform || 'C64',
+        platform: data.platform || 'C64 LC-Games',
         genre: data.genre,
         imageUrl: data.imageUrl || undefined,
         url: data.url || undefined,
@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
         youtubeUrl: data.youtubeUrl || undefined,
         scoreConfig: data.scoreConfig as Prisma.InputJsonValue | undefined,
         difficultyConfig: data.difficultyConfig as Prisma.InputJsonValue | undefined,
-        palNtscConfig: data.palNtscConfig as Prisma.InputJsonValue | undefined
+        palNtscConfig: data.palNtscConfig as Prisma.InputJsonValue | undefined,
+        published: data.published ?? true
       }
     });
 

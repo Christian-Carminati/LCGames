@@ -4,7 +4,7 @@ export const GameSchema = z.object({
   title: z.string().min(1).max(100),
   slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
   description: z.string().max(1000).optional(),
-  platform: z.enum(['C64', 'NES', 'PC', 'Other']),
+  platform: z.enum(['C64 LC-Games', 'C64 Arcade', 'NES', 'PC', 'Amiga', 'Other']),
   genre: z.string().max(50).optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),
   url: z.string().url().optional().or(z.literal('')),
@@ -13,9 +13,10 @@ export const GameSchema = z.object({
   scoreConfig: z.record(z.string(), z.unknown()).nullish(),
   difficultyConfig: z.record(z.string(), z.unknown()).nullish(),
   palNtscConfig: z.record(z.string(), z.unknown()).nullish(),
+  published: z.boolean().optional(),
 }).transform(data => ({
   ...data,
-  platform: data.platform || 'C64' as const
+  platform: data.platform || 'C64 LC-Games' as const
 }));
 
 export const ScoreSubmitSchema = z.object({
