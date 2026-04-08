@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Emulator } from '@/components/Emulator';
 import { ScoreBoard } from '@/components/ScoreBoard';
 import { CurrentScoreCard } from '@/components/CurrentScoreCard';
@@ -176,6 +176,8 @@ export function GameInterface({
     const [currentStandard, setCurrentStandard] = useState<'PAL' | 'NTSC'>('PAL');
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
     const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
+    const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number } | null>(null);
+    const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
         setCurrentScore(score);
@@ -189,7 +191,14 @@ export function GameInterface({
     };
 
     const handleScoreSaved = () => {
+        const combinedDifficulty = (difficultyConfig ? currentDifficulty : 0) +
+            (palNtscConfig && currentStandard === 'NTSC' ? (difficultyConfig?.numLevels || 1) : 0);
+        setLastSavedScore({ score: currentScore, difficulty: combinedDifficulty });
         setScoreRefreshKey((prev) => prev + 1);
+        // Scroll to scoreboard after a short delay to allow re-render
+        setTimeout(() => {
+            scoreBoardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     };
 
     // Check warp settings on mount
@@ -349,8 +358,8 @@ export function GameInterface({
             </div>
 
             {!isVideoOnlyGame && scoreConfig && (
-                <div className="flex flex-col gap-6">
-                    <CurrentScoreCard 
+                <div ref={scoreBoardRef} className="flex flex-col gap-6">
+                    <CurrentScoreCard
                         gameSlug={gameSlug}
                         capturedScore={currentScore}
                         hasDifficultyLevels={!!difficultyConfig}
@@ -362,7 +371,7 @@ export function GameInterface({
                         romPath={romPath}
                         onScoreSaved={handleScoreSaved}
                     />
-                    <ScoreBoard 
+                    <ScoreBoard
                         gameSlug={gameSlug}
                         hasDifficultyLevels={!!difficultyConfig}
                         numDifficultyLevels={difficultyConfig?.numLevels || 1}
@@ -370,20 +379,24 @@ export function GameInterface({
                         hasPalNtsc={!!palNtscConfig}
                         currentStandard={currentStandard}
                         refreshKey={scoreRefreshKey}
+                        lastSavedScore={lastSavedScore}
                     />
                 </div>
             )}
 
             {!isVideoOnlyGame && !scoreConfig && (
-                <ScoreBoard 
-                    gameSlug={gameSlug}
-                    hasDifficultyLevels={!!difficultyConfig}
-                    numDifficultyLevels={difficultyConfig?.numLevels || 1}
-                    difficultyNames={difficultyConfig?.levelNames || []}
-                    hasPalNtsc={!!palNtscConfig}
-                    currentStandard={currentStandard}
-                    refreshKey={scoreRefreshKey}
-                />
+                <div ref={scoreBoardRef}>
+                    <ScoreBoard
+                        gameSlug={gameSlug}
+                        hasDifficultyLevels={!!difficultyConfig}
+                        numDifficultyLevels={difficultyConfig?.numLevels || 1}
+                        difficultyNames={difficultyConfig?.levelNames || []}
+                        hasPalNtsc={!!palNtscConfig}
+                        currentStandard={currentStandard}
+                        refreshKey={scoreRefreshKey}
+                        lastSavedScore={lastSavedScore}
+                    />
+                </div>
             )}
         </div>
     );

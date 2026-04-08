@@ -17,17 +17,33 @@ interface ScoreBoardProps {
   hasPalNtsc?: boolean;
   currentStandard?: 'PAL' | 'NTSC';
   refreshKey?: number;
+  lastSavedScore?: { score: number; difficulty: number } | null;
 }
 
-export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [], hasPalNtsc = false, currentStandard = 'PAL', refreshKey }: ScoreBoardProps) {
+export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [], hasPalNtsc = false, currentStandard = 'PAL', refreshKey, lastSavedScore }: ScoreBoardProps) {
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(0);
   const [selectedStandard, setSelectedStandard] = useState<'PAL' | 'NTSC'>(currentStandard);
+  const [highlightIndex, setHighlightIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setSelectedStandard(currentStandard);
   }, [currentStandard]);
+
+  // Highlight the just-saved score when scores refresh after a save
+  useEffect(() => {
+    if (lastSavedScore && scores.length > 0) {
+      const index = scores.findIndex(
+        (entry) => entry.score === lastSavedScore.score
+      );
+      if (index !== -1) {
+        setHighlightIndex(index);
+        // Clear highlight after 3 seconds
+        setTimeout(() => setHighlightIndex(null), 3000);
+      }
+    }
+  }, [lastSavedScore, scores]);
 
   useEffect(() => {
     let active = true;
@@ -166,7 +182,10 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
             </thead>
             <tbody>
               {scores.map((entry, index) => (
-                <tr key={index}>
+                <tr
+                  key={index}
+                  className={highlightIndex === index ? 'bg-yellow-600/40 animate-pulse' : ''}
+                >
                     <td>{index + 1}</td>
                     <td className="flex items-center gap-2">
                         {entry.userImage && (
