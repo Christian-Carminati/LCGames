@@ -17,7 +17,7 @@ interface ScoreBoardProps {
   hasPalNtsc?: boolean;
   currentStandard?: 'PAL' | 'NTSC';
   refreshKey?: number;
-  lastSavedScore?: { score: number; difficulty: number } | null;
+  lastSavedScore?: { score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null;
 }
 
 export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficultyLevels = 1, difficultyNames = [], hasPalNtsc = false, currentStandard = 'PAL', refreshKey, lastSavedScore }: ScoreBoardProps) {
@@ -44,6 +44,18 @@ export function ScoreBoard({ gameSlug, hasDifficultyLevels = false, numDifficult
       }
     }
   }, [lastSavedScore, scores]);
+
+  // When a new score is saved, switch to the correct difficulty and standard
+  useEffect(() => {
+    if (lastSavedScore) {
+      if (hasDifficultyLevels) {
+        setSelectedDifficulty(lastSavedScore.difficulty);
+      }
+      if (hasPalNtsc) {
+        setSelectedStandard(lastSavedScore.standard);
+      }
+    }
+  }, [lastSavedScore, hasDifficultyLevels, hasPalNtsc]);
 
   useEffect(() => {
     let active = true;

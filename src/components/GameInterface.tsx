@@ -176,7 +176,7 @@ export function GameInterface({
     const [currentStandard, setCurrentStandard] = useState<'PAL' | 'NTSC'>('PAL');
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
     const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
-    const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number } | null>(null);
+    const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
@@ -191,9 +191,7 @@ export function GameInterface({
     };
 
     const handleScoreSaved = () => {
-        const combinedDifficulty = (difficultyConfig ? currentDifficulty : 0) +
-            (palNtscConfig && currentStandard === 'NTSC' ? (difficultyConfig?.numLevels || 1) : 0);
-        setLastSavedScore({ score: currentScore, difficulty: combinedDifficulty });
+        setLastSavedScore({ score: currentScore, difficulty: currentDifficulty, standard: currentStandard });
         setScoreRefreshKey((prev) => prev + 1);
         // Scroll to scoreboard after a short delay to allow re-render
         setTimeout(() => {
