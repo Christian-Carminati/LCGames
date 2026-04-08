@@ -4,7 +4,7 @@ export const GameSchema = z.object({
   title: z.string().min(1).max(100),
   slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
   description: z.string().max(1000).optional(),
-  platform: z.enum(['C64 LC-Games', 'C64 Arcade', 'NES', 'PC', 'Amiga', 'Other']),
+  platform: z.enum(['C64 LC-Games', 'C64 Arcade', 'PC', 'Amiga', 'Other']),
   genre: z.string().max(50).optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),
   url: z.string().url().optional().or(z.literal('')),

@@ -187,7 +187,6 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
             <option value="C64 Arcade">C64 Arcade</option>
             <option value="Amiga">Amiga</option>
             <option value="PC">PC</option>
-            <option value="NES">NES</option>
           </select>
         </div>
       </div>
