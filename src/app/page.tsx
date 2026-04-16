@@ -46,7 +46,7 @@ export default async function Home() {
         <p className="title">Credits</p>
         <div className="flex flex-col gap-2 text-xs md:text-sm text-gray-300">
            <p><span className="text-c64-text">Site Developer:</span> Christian Carminati</p>
-           <p><span className="text-c64-text">Game Developer:</span> Luca Carminati</p>
+           <p><span className="text-c64-text">Tester:</span> Luca Carminati</p>
            <p><span className="text-c64-text">Tester:</span> Stefano Carminati</p>
         </div>
       </div>

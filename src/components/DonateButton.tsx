@@ -8,7 +8,7 @@ interface DonateButtonProps {
 }
 
 export function DonateButton({
-    label = "DONATE COFFEE",
+    label = "WORK IN PROGRESS",
     className = ""
 }: DonateButtonProps) {
   return (

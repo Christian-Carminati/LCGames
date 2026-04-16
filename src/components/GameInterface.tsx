@@ -180,6 +180,8 @@ export function GameInterface({
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
+        // Ignore score updates that don't match current difficulty - they are stale
+        if (difficulty !== undefined && difficulty !== currentDifficulty) return;
         setCurrentScore(score);
         if (difficulty !== undefined) {
             setCurrentDifficulty(difficulty);
@@ -207,11 +209,7 @@ export function GameInterface({
         }
     }, [romPath, platform]);
 
-    // Reset score when difficulty or PAL/NTSC changes to prevent cheating
-    useEffect(() => {
-        setCurrentScore(0);
-    }, [currentDifficulty, currentStandard]);
-
+    
     const handleEnableWarpAndRefresh = () => {
         enableWarpSettings(romPath);
         window.location.reload();
