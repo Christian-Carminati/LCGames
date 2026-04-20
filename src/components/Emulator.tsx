@@ -194,7 +194,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficu
       
       <div className="mt-4 flex flex-col items-center gap-2">
         <div className="text-xs text-gray-400 text-center">
-            Powered by EmulatorJS. Controls: Arrow Keys + X (Fire) + Enter (Start) + P (Pause).
+            Powered by EmulatorJS. Controls: Arrow keys + X (Fire) + Enter (Start) + V (C64 keyboard) + P (Pause).
             <br/>
             Click inside the screen to enable audio/input.
         </div>
