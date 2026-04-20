@@ -175,7 +175,6 @@ export function GameInterface({
     const [currentScore, setCurrentScore] = useState<number>(0);
     const [currentDifficulty, setCurrentDifficulty] = useState<number>(0);
     const [currentStandard, setCurrentStandard] = useState<'PAL' | 'NTSC'>('PAL');
-    const [difficultyInitialized, setDifficultyInitialized] = useState<boolean>(false);
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
     const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
     const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
@@ -183,17 +182,10 @@ export function GameInterface({
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
-        // Accept first score update to establish initial difficulty
-        if (!difficultyInitialized && difficulty !== undefined) {
-            setCurrentDifficulty(difficulty);
-            setDifficultyInitialized(true);
-        }
-        // Ignore score updates that don't match current difficulty - they are stale
-        if (difficulty !== undefined && difficultyInitialized && difficulty !== currentDifficulty) return;
+        console.log("[GI] handleScoreUpdate called:", score, difficulty);
         setCurrentScore(score);
-        if (difficulty !== undefined && !difficultyInitialized) {
+        if (difficulty !== undefined) {
             setCurrentDifficulty(difficulty);
-            setDifficultyInitialized(true);
         }
     };
 
