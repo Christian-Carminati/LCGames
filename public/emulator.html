@@ -48,6 +48,12 @@
       let difficultyConfig = null;
       let palNtscConfig = null;
 
+      // Peak score tracking for game-over detection
+      let peakScore = 0;
+      let lastScoreTime = 0;
+      let lastScoreValue = 0;
+      let scoreDropAlertSent = false; // Prevent multiple triggers
+
       // --- Initialization ---
       if (romPath) {
         initEmulator(romPath);
@@ -154,6 +160,12 @@
         } catch (e) {
           console.warn("[EMULATOR] Could not force settings:", e);
         }
+
+        // Reset peak score tracking for new game session
+        peakScore = 0;
+        lastScoreTime = 0;
+        lastScoreValue = 0;
+        scoreDropAlertSent = false;
 
         // EmulatorJS Core Settings
         window.EJS_player = "#game";
@@ -552,10 +564,44 @@
         return 0;
       }
 
+      /**
+       * Monitor score for peak tracking and game-over detection
+       * Triggers SCORE_DROP_DETECTED when score drops >70% within 5 seconds
+       */
+      function monitorPeakScore(score) {
+        const now = Date.now();
+
+        if (score > peakScore) {
+          peakScore = score;
+        }
+
+        // Detect dramatic drop (game over signal)
+        // Only trigger if: previous score was > 50, dropped >70%, happened within 5 seconds
+        if (lastScoreValue > 50 && score < lastScoreValue * 0.3 && now - lastScoreTime < 5000) {
+          if (!scoreDropAlertSent) {
+            scoreDropAlertSent = true; // Prevent re-triggering
+            console.log("[PEAK] Game over detected. Peak:", peakScore, "Final:", score);
+            window.parent.postMessage({
+              type: 'SCORE_DROP_DETECTED',
+              peakScore: peakScore,
+              finalScore: score,
+              timestamp: now
+            }, '*');
+          }
+        }
+
+        lastScoreValue = score;
+        lastScoreTime = now;
+      }
+
       function sendScoreToParent(score) {
         if (!isNaN(score)) {
           const difficulty = readDifficulty();
           const palNtscValue = readPalNtsc();
+
+          // Track peak score and detect drops
+          monitorPeakScore(score);
+
           window.parent.postMessage(
             { type: "SCORE_UPDATE", score: score, difficulty: difficulty, palNtsc: palNtscValue },
             "*",
