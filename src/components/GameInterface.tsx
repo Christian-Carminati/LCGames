@@ -175,6 +175,7 @@ export function GameInterface({
     const [currentScore, setCurrentScore] = useState<number>(0);
     const [currentDifficulty, setCurrentDifficulty] = useState<number>(0);
     const [currentStandard, setCurrentStandard] = useState<'PAL' | 'NTSC'>('PAL');
+    const [difficultyInitialized, setDifficultyInitialized] = useState<boolean>(false);
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
     const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
     const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
@@ -182,11 +183,17 @@ export function GameInterface({
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
-        // Ignore score updates that don't match current difficulty - they are stale
-        if (difficulty !== undefined && difficulty !== currentDifficulty) return;
-        setCurrentScore(score);
-        if (difficulty !== undefined) {
+        // Accept first score update to establish initial difficulty
+        if (!difficultyInitialized && difficulty !== undefined) {
             setCurrentDifficulty(difficulty);
+            setDifficultyInitialized(true);
+        }
+        // Ignore score updates that don't match current difficulty - they are stale
+        if (difficulty !== undefined && difficultyInitialized && difficulty !== currentDifficulty) return;
+        setCurrentScore(score);
+        if (difficulty !== undefined && !difficultyInitialized) {
+            setCurrentDifficulty(difficulty);
+            setDifficultyInitialized(true);
         }
     };
 
@@ -216,11 +223,17 @@ export function GameInterface({
         const handleMessage = (event: MessageEvent) => {
             // Handle Score Update (Memory Monitor)
             if (event.data?.type === 'SCORE_UPDATE' && typeof event.data.score === 'number') {
-                // Ignore score updates that don't match current difficulty - they are stale
-                if (event.data.difficulty !== undefined && event.data.difficulty !== currentDifficulty) return;
-                setCurrentScore(event.data.score);
-                if (event.data.difficulty !== undefined) {
+                // Accept first score update to establish initial difficulty
+                if (!difficultyInitialized && event.data.difficulty !== undefined) {
                     setCurrentDifficulty(event.data.difficulty);
+                    setDifficultyInitialized(true);
+                }
+                // Ignore score updates that don't match current difficulty - they are stale
+                if (event.data.difficulty !== undefined && difficultyInitialized && event.data.difficulty !== currentDifficulty) return;
+                setCurrentScore(event.data.score);
+                if (event.data.difficulty !== undefined && !difficultyInitialized) {
+                    setCurrentDifficulty(event.data.difficulty);
+                    setDifficultyInitialized(true);
                 }
             }
 
@@ -239,7 +252,7 @@ export function GameInterface({
 
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, [lastSavedScore, currentDifficulty, currentStandard]);
+    }, [lastSavedScore, currentDifficulty, currentStandard, difficultyInitialized]);
 
     const handleEnableWarpAndRefresh = () => {
         enableWarpSettings(romPath);
