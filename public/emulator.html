@@ -317,10 +317,16 @@
        * Returns the byte value at the configured address, or 0 if not configured
        */
       function readDifficulty() {
-        if (!difficultyConfig || !difficultyConfig.address) return 0;
+        if (!difficultyConfig || !difficultyConfig.address) {
+          console.log("[DIFFICULTY] No difficulty config");
+          return 0;
+        }
 
         const heap = findHeap();
-        if (!heap) return 0;
+        if (!heap) {
+          console.log("[DIFFICULTY] No heap available");
+          return 0;
+        }
 
         let address = parseInt(difficultyConfig.address, 16);
 
@@ -329,9 +335,13 @@
           address += parseInt(difficultyConfig.baseOffset, 16);
         }
 
-        if (address >= heap.length) return 0;
+        if (address >= heap.length) {
+          console.log("[DIFFICULTY] Address out of bounds:", address, "heap length:", heap.length);
+          return 0;
+        }
 
         let difficultyValue = heap[address] || 0;
+        console.log("[DIFFICULTY] Read value:", difficultyValue, "at address:", address);
 
         const now = Date.now();
         if (debugMode && now - lastLog > 5000) {
@@ -376,7 +386,10 @@
           setInterval(() => {
             const score = extractScore(config);
             if (score !== null) {
+              console.log("[SCORE_POLL] Extracted score:", score);
               sendScoreToParent(score);
+            } else {
+              console.log("[SCORE_POLL] No score extracted (heap or address issue)");
             }
           }, 1000);
           
@@ -417,6 +430,7 @@
         ) {
           return window.EJS_emulator.Module.HEAPU8;
         }
+        console.log("[FIND_HEAP] No heap found - Module:", !!window.Module, "EJS_emulator:", !!window.EJS_emulator);
         return null;
       }
 
@@ -492,9 +506,14 @@
         const bytes = [];
         for (let i = 0; i < length; i++) {
           // Validate memory bounds
-          if (address + i >= heap.length) return null;
+          if (address + i >= heap.length) {
+            console.log("[EXTRACT_SCORE] Out of bounds: address", address, "i", i, "heap.length", heap.length);
+            return null;
+          }
           bytes.push(heap[address + i]);
         }
+
+        console.log("[EXTRACT_SCORE] Raw bytes:", bytes.map(b => '0x' + b.toString(16).padStart(2, '0')), "type:", type);
 
         const now = Date.now();
         if (debugMode && now - lastLog > 5000) {
@@ -598,6 +617,7 @@
         if (!isNaN(score)) {
           const difficulty = readDifficulty();
           const palNtscValue = readPalNtsc();
+          console.log("[SEND_SCORE] score:", score, "difficulty:", difficulty, "palNtsc:", palNtscValue);
 
           // Track peak score and detect drops
           monitorPeakScore(score);
