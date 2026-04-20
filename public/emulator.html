@@ -65,16 +65,18 @@
             difficultyConfig = JSON.parse(
               decodeURIComponent(difficultyConfigJson),
             );
-                      } catch (e) {
-                      }
+          } catch (e) {
+            // ignore parse errors
+          }
         }
         if (palNtscConfigJson) {
           try {
             palNtscConfig = JSON.parse(
               decodeURIComponent(palNtscConfigJson),
             );
-                      } catch (e) {
-                      }
+          } catch (e) {
+            // ignore parse errors
+          }
         }
       } else {
         showError("NO ROM LOADED");
@@ -150,8 +152,9 @@
           };
           
           localStorage.setItem(settingsKey, JSON.stringify(forcedSettings));
-                            } catch (e) {
-                  }
+        } catch (e) {
+          // ignore storage errors
+        }
 
         // Reset peak score tracking for new game session
         peakScore = 0;
@@ -345,16 +348,15 @@
               candidates.forEach((k) => {
                 if (typeof mod[k] === "number") values[k] = mod[k];
               });
-                          }
+            }
           }, 5000);
 
           // Start polling loop
           setInterval(() => {
             const score = extractScore(config);
             if (score !== null) {
-                            sendScoreToParent(score);
-            } else {
-                          }
+              sendScoreToParent(score);
+            }
           }, 1000);
           
           // Also start PAL/NTSC polling if configured (runs even without score changes)
@@ -550,19 +552,11 @@
         if (!isNaN(score)) {
           const difficulty = readDifficulty();
           const palNtscValue = readPalNtsc();
-          
-          // Track peak score and detect drops
+
           monitorPeakScore(score);
 
           window.parent.postMessage(
             { type: "SCORE_UPDATE", score: score, difficulty: difficulty, palNtsc: palNtscValue },
-            "*",
-          );
-          
-          // Also send separate PAL/NTSC update message
-          const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
-          window.parent.postMessage(
-            { type: "PALNTSC_UPDATE", standard: standard },
             "*",
           );
         }

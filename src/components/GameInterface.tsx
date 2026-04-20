@@ -195,26 +195,25 @@ export function GameInterface({
     const handleScoreSaved = () => {
         setLastSavedScore({ score: currentScore, difficulty: currentDifficulty, standard: currentStandard });
         setScoreRefreshKey((prev) => prev + 1);
-        // Scroll to scoreboard after a short delay to allow re-render
         setTimeout(() => {
             scoreBoardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
 
+    const isC64 = platform === 'C64 LC-Games' || platform === 'C64 Arcade' || platform === 'C64' || platform === 'COMMODORE 64';
+
     // Check warp settings on mount
     useEffect(() => {
-        if (platform === 'C64 LC-Games' || platform === 'C64 Arcade' || platform === 'C64' || platform === 'COMMODORE 64') {
+        if (isC64) {
             const status = checkWarpSettings(romPath);
             setWarpStatus(status);
         }
-    }, [romPath, platform]);
+    }, [romPath, isC64]);
 
-    // Handle messages from emulator (SCORE_DROP_DETECTED only - score updates come through handleScoreUpdate prop)
+    // Handle SCORE_DROP_DETECTED from emulator
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
-            // Handle Score Drop (Game Over Detection)
             if (event.data?.type === 'SCORE_DROP_DETECTED' && typeof event.data.peakScore === 'number') {
-                // Only show prompt if we have a valid peak score and haven't already saved
                 if (event.data.peakScore > 0 && !lastSavedScore) {
                     setPeakScorePrompt({
                         score: event.data.peakScore,
@@ -229,49 +228,14 @@ export function GameInterface({
         return () => window.removeEventListener('message', handleMessage);
     }, [lastSavedScore, currentDifficulty, currentStandard]);
 
-    const handleEnableWarpAndRefresh = () => {
-        enableWarpSettings(romPath);
-        window.location.reload();
-    };
-
     const isVideoOnlyGame = platform === 'PC' || (typeof platform === 'string' && platform.toUpperCase() === 'AMIGA' && !!youtubeUrl);
     const embedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl) : null;
-    const isC64 = platform === 'C64 LC-Games' || platform === 'C64 Arcade' || platform === 'C64' || platform === 'COMMODORE 64';
-    // const showWarpWarning = isC64 && !warpStatus.enabled && !isVideoOnlyGame && romPath;
 
     return (
         <div className="flex flex-col gap-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Game Info Column */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Warp Settings Warning - COMMENTED OUT FOR NOW
-                    {showWarpWarning && (
-                        <div className="nes-container is-rounded is-warning with-title">
-                            <p className="title">⚠️ FAST LOADING DISABLED</p>
-                            <div className="flex flex-col gap-3">
-                                <p className="text-sm">
-                                    This game is missing performance settings for fast loading. 
-                                    Enable them to skip loading screens and improve emulation speed.
-                                </p>
-                                <div className="text-xs text-gray-400">
-                                    <p className="mb-2">Missing fast loading settings:</p>
-                                    <ul className="list-disc list-inside space-y-1">
-                                        {warpStatus.missing.map((setting, idx) => (
-                                            <li key={idx} className="text-yellow-500">{setting}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <button
-                                    onClick={handleEnableWarpAndRefresh}
-                                    className="nes-btn is-warning"
-                                >
-                                    🚀 ENABLE FAST LOADING & REFRESH
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                    */}
-
                     <div className="nes-container is-rounded is-dark with-title">
                         <p className="title">{gameTitle}</p>
                         {isVideoOnlyGame ? (
