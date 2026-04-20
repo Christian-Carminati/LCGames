@@ -182,7 +182,6 @@ export function GameInterface({
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
-        console.log("[GI] handleScoreUpdate called:", score, difficulty);
         setCurrentScore(score);
         if (difficulty !== undefined) {
             setCurrentDifficulty(difficulty);
