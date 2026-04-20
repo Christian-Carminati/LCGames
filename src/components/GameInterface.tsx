@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Emulator } from '@/components/Emulator';
 import { ScoreBoard } from '@/components/ScoreBoard';
 import { CurrentScoreCard } from '@/components/CurrentScoreCard';
+import { SaveScorePrompt } from '@/components/SaveScorePrompt';
 
 interface GameInterfaceProps {
     gameSlug: string;
@@ -177,6 +178,7 @@ export function GameInterface({
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
     const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
     const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
+    const [peakScorePrompt, setPeakScorePrompt] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
@@ -209,7 +211,26 @@ export function GameInterface({
         }
     }, [romPath, platform]);
 
-    
+    // Handle messages from emulator (including SCORE_DROP_DETECTED)
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            // Handle Score Drop (Game Over Detection)
+            if (event.data?.type === 'SCORE_DROP_DETECTED' && typeof event.data.peakScore === 'number') {
+                // Only show prompt if we have a valid peak score and haven't already saved
+                if (event.data.peakScore > 0 && !lastSavedScore) {
+                    setPeakScorePrompt({
+                        score: event.data.peakScore,
+                        difficulty: currentDifficulty,
+                        standard: currentStandard
+                    });
+                }
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [lastSavedScore, currentDifficulty, currentStandard]);
+
     const handleEnableWarpAndRefresh = () => {
         enableWarpSettings(romPath);
         window.location.reload();
@@ -393,6 +414,20 @@ export function GameInterface({
                         lastSavedScore={lastSavedScore}
                     />
                 </div>
+            )}
+
+            {peakScorePrompt && (
+                <SaveScorePrompt
+                    peakScore={peakScorePrompt.score}
+                    gameSlug={gameSlug}
+                    difficulty={peakScorePrompt.difficulty}
+                    standard={peakScorePrompt.standard}
+                    onDismiss={() => setPeakScorePrompt(null)}
+                    onSaveSuccess={() => {
+                        setLastSavedScore({ score: peakScorePrompt.score, difficulty: peakScorePrompt.difficulty, standard: peakScorePrompt.standard });
+                        setScoreRefreshKey(prev => prev + 1);
+                    }}
+                />
             )}
         </div>
     );
