@@ -193,6 +193,21 @@
         });
         observer.observe(document.body, { childList: true, subtree: true });
 
+        // Hide save/load options from control settings
+        const hideObserver = new MutationObserver(() => {
+          // Target common EmulatorJS control settings selectors
+          const selectors = [
+            '[data-action*="save"]', '[data-action*="load"]',
+            '.ejs-opt-save', '.ejs-opt-load',
+            '[data-input*="save state"]', '[data-input*="load state"]',
+            '.option-item:has(.ejs-btn-save)', '.option-item:has(.ejs-btn-load)'
+          ];
+          selectors.forEach(sel => {
+            document.querySelectorAll(sel).forEach(el => el.style.display = 'none');
+          });
+        });
+        hideObserver.observe(document.body, { childList: true, subtree: true });
+
         // Standardize Pause/Resume on Tab Switch
         // Standardize Pause/Resume on Tab Switch
         document.addEventListener("visibilitychange", () => {
@@ -225,6 +240,13 @@
       let isPaused = false;
 
       document.addEventListener("keydown", function (e) {
+        // Block save/load hotkeys (F5=Fast Save default, F9=Fast Load default)
+        if (e.key === 'F5' || e.key === 'F9' ||
+            (e.shiftKey && (e.key === 'F5' || e.key === 'F9'))) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
         if (e.key === "p" || e.key === "P") {
           const emu = window.EJS_emulator;
           if (emu && typeof emu.togglePlaying === "function") {
