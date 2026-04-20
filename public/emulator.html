@@ -65,28 +65,23 @@
             difficultyConfig = JSON.parse(
               decodeURIComponent(difficultyConfigJson),
             );
-            console.log("[DIFFICULTY] Config loaded:", difficultyConfig);
-          } catch (e) {
-            console.error("[DIFFICULTY] Failed to parse config:", e);
-          }
+                      } catch (e) {
+                      }
         }
         if (palNtscConfigJson) {
           try {
             palNtscConfig = JSON.parse(
               decodeURIComponent(palNtscConfigJson),
             );
-            console.log("[PAL/NTSC] Config loaded:", palNtscConfig);
-          } catch (e) {
-            console.error("[PAL/NTSC] Failed to parse config:", e);
-          }
+                      } catch (e) {
+                      }
         }
       } else {
         showError("NO ROM LOADED");
       }
 
       function initEmulator(rom) {
-        console.log("Booting C64 with ROM:", rom);
-
+        
         // CRITICAL: Force warp settings in localStorage FOR THIS SPECIFIC ROM
         // EmulatorJS uses per-game settings with key: ejs-1-c64-[ROM_PATH]-settings
         try {
@@ -155,11 +150,8 @@
           };
           
           localStorage.setItem(settingsKey, JSON.stringify(forcedSettings));
-          console.log("[EMULATOR] Forced warp settings for ROM:", rom);
-          console.log("[EMULATOR] Settings key:", settingsKey);
-        } catch (e) {
-          console.warn("[EMULATOR] Could not force settings:", e);
-        }
+                            } catch (e) {
+                  }
 
         // Reset peak score tracking for new game session
         peakScore = 0;
@@ -225,8 +217,7 @@
         document.addEventListener("visibilitychange", () => {
           if (document.hidden) {
             if (window.EJS_emulator && window.EJS_emulator.pause) {
-              console.log("Tab hidden: Pausing emulator");
-              window.EJS_emulator.pause();
+                            window.EJS_emulator.pause();
             }
           } else {
             // Only auto-resume if the user didn't manually pause the game
@@ -235,8 +226,7 @@
               window.EJS_emulator.resume &&
               !isPaused
             ) {
-              console.log("Tab visible: Resuming emulator");
-              window.EJS_emulator.resume();
+                            window.EJS_emulator.resume();
             }
             // Ensure focus returns to the game
             setTimeout(() => {
@@ -299,16 +289,7 @@
         }
 
         if (address >= heap.length) return 0;
-
         let palNtscValue = heap[address] || 0;
-
-        const now = Date.now();
-        if (debugMode && now - lastLog > 5000) {
-          console.log(
-            `[DEBUG_PALNTSC] Addr: ${palNtscConfig.address} (Base: ${palNtscConfig.baseOffset || 0} -> Real: ${address}), Value: 0x${palNtscValue.toString(16)} (Dec: ${palNtscValue})`,
-          );
-        }
-
         return palNtscValue;
       }
 
@@ -318,14 +299,12 @@
        */
       function readDifficulty() {
         if (!difficultyConfig || !difficultyConfig.address) {
-          console.log("[DIFFICULTY] No difficulty config");
-          return 0;
+                    return 0;
         }
 
         const heap = findHeap();
         if (!heap) {
-          console.log("[DIFFICULTY] No heap available");
-          return 0;
+                    return 0;
         }
 
         let address = parseInt(difficultyConfig.address, 16);
@@ -336,20 +315,10 @@
         }
 
         if (address >= heap.length) {
-          console.log("[DIFFICULTY] Address out of bounds:", address, "heap length:", heap.length);
-          return 0;
+                    return 0;
         }
 
         let difficultyValue = heap[address] || 0;
-        console.log("[DIFFICULTY] Read value:", difficultyValue, "at address:", address);
-
-        const now = Date.now();
-        if (debugMode && now - lastLog > 5000) {
-          console.log(
-            `[DEBUG_DIFFICULTY] Addr: ${difficultyConfig.address} (Base: ${difficultyConfig.baseOffset || 0} -> Real: ${address}), Value: 0x${difficultyValue.toString(16)} (Dec: ${difficultyValue})`,
-          );
-        }
-
         return difficultyValue;
       }
 
@@ -358,8 +327,7 @@
       function initMemoryMonitor(configStr) {
         try {
           const config = JSON.parse(decodeURIComponent(configStr));
-          console.log("Initializing Memory Monitor:", config);
-
+          
           // Probe for RAM offset
           setTimeout(() => {
             const mod = window.EJS_emulator?.Module || window.Module;
@@ -372,25 +340,21 @@
                     k.toLowerCase().includes("ptr") ||
                     k.toLowerCase().includes("start")),
               );
-              console.log("[DEBUG_PROBE] Module Candidates:", candidates);
-              // Also log values if they are numbers
+                            // Also log values if they are numbers
               const values = {};
               candidates.forEach((k) => {
                 if (typeof mod[k] === "number") values[k] = mod[k];
               });
-              console.log("[DEBUG_PROBE] Candidate Values:", values);
-            }
+                          }
           }, 5000);
 
           // Start polling loop
           setInterval(() => {
             const score = extractScore(config);
             if (score !== null) {
-              console.log("[SCORE_POLL] Extracted score:", score);
-              sendScoreToParent(score);
+                            sendScoreToParent(score);
             } else {
-              console.log("[SCORE_POLL] No score extracted (heap or address issue)");
-            }
+                          }
           }, 1000);
           
           // Also start PAL/NTSC polling if configured (runs even without score changes)
@@ -405,13 +369,11 @@
                   { type: "PALNTSC_UPDATE", standard: standard },
                   "*",
                 );
-                console.log("[PAL/NTSC] Changed to:", standard);
-              }
+                              }
             }, 500);
           }
         } catch (e) {
-          console.error("Failed to parse score config:", e);
-        }
+                  }
       }
 
       /**
@@ -430,8 +392,7 @@
         ) {
           return window.EJS_emulator.Module.HEAPU8;
         }
-        console.log("[FIND_HEAP] No heap found - Module:", !!window.Module, "EJS_emulator:", !!window.EJS_emulator);
-        return null;
+                return null;
       }
 
       /**
@@ -450,11 +411,6 @@
           bytes = pattern;
         }
 
-        console.log(
-          "Hunting for:",
-          bytes.map((b) => b.toString(16).padStart(2, "0")).join(" "),
-        );
-
         const results = [];
         for (let i = 0; i < heap.length - bytes.length; i++) {
           let match = true;
@@ -471,23 +427,12 @@
           }
         }
 
-        console.log(`Found ${results.length} matches:`);
-        results.forEach((addr) => {
-          const hex = "0x" + addr.toString(16);
-          console.log(`${hex} (Decimal: ${addr})`);
-        });
         return results;
       };
 
       /**
        * Reads the score from memory based on config
        */
-      // throttle logging
-      let lastLog = 0;
-
-      const debugMode =
-        urlParams.get("debug") === "1" || urlParams.get("debug") === "true";
-
       function extractScore(config) {
         const heap = findHeap();
         if (!heap) return null;
@@ -507,20 +452,9 @@
         for (let i = 0; i < length; i++) {
           // Validate memory bounds
           if (address + i >= heap.length) {
-            console.log("[EXTRACT_SCORE] Out of bounds: address", address, "i", i, "heap.length", heap.length);
-            return null;
+                        return null;
           }
           bytes.push(heap[address + i]);
-        }
-
-        console.log("[EXTRACT_SCORE] Raw bytes:", bytes.map(b => '0x' + b.toString(16).padStart(2, '0')), "type:", type);
-
-        const now = Date.now();
-        if (debugMode && now - lastLog > 5000) {
-          console.log(
-            `[DEBUG_SCORE] Addr: ${config.address} (Base: ${config.baseOffset || 0} -> Real: ${address}), Bytes: [${bytes.map((b) => "0x" + b.toString(16).padStart(2, "0")).join(", ")}], Type: ${type}`,
-          );
-          lastLog = now;
         }
 
         // Handle Little Endian for BCD (reverse to Big Endian for parsing)
@@ -599,8 +533,7 @@
         if (lastScoreValue > 50 && score < lastScoreValue * 0.3 && now - lastScoreTime < 5000) {
           if (!scoreDropAlertSent) {
             scoreDropAlertSent = true; // Prevent re-triggering
-            console.log("[PEAK] Game over detected. Peak:", peakScore, "Final:", score);
-            window.parent.postMessage({
+                        window.parent.postMessage({
               type: 'SCORE_DROP_DETECTED',
               peakScore: peakScore,
               finalScore: score,
@@ -617,8 +550,7 @@
         if (!isNaN(score)) {
           const difficulty = readDifficulty();
           const palNtscValue = readPalNtsc();
-          console.log("[SEND_SCORE] score:", score, "difficulty:", difficulty, "palNtsc:", palNtscValue);
-
+          
           // Track peak score and detect drops
           monitorPeakScore(score);
 
