@@ -214,6 +214,16 @@ export function GameInterface({
     // Handle messages from emulator (including SCORE_DROP_DETECTED)
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
+            // Handle Score Update (Memory Monitor)
+            if (event.data?.type === 'SCORE_UPDATE' && typeof event.data.score === 'number') {
+                // Ignore score updates that don't match current difficulty - they are stale
+                if (event.data.difficulty !== undefined && event.data.difficulty !== currentDifficulty) return;
+                setCurrentScore(event.data.score);
+                if (event.data.difficulty !== undefined) {
+                    setCurrentDifficulty(event.data.difficulty);
+                }
+            }
+
             // Handle Score Drop (Game Over Detection)
             if (event.data?.type === 'SCORE_DROP_DETECTED' && typeof event.data.peakScore === 'number') {
                 // Only show prompt if we have a valid peak score and haven't already saved
