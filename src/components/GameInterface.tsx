@@ -218,25 +218,9 @@ export function GameInterface({
         }
     }, [romPath, platform]);
 
-    // Handle messages from emulator (including SCORE_DROP_DETECTED)
+    // Handle messages from emulator (SCORE_DROP_DETECTED only - score updates come through handleScoreUpdate prop)
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
-            // Handle Score Update (Memory Monitor)
-            if (event.data?.type === 'SCORE_UPDATE' && typeof event.data.score === 'number') {
-                // Accept first score update to establish initial difficulty
-                if (!difficultyInitialized && event.data.difficulty !== undefined) {
-                    setCurrentDifficulty(event.data.difficulty);
-                    setDifficultyInitialized(true);
-                }
-                // Ignore score updates that don't match current difficulty - they are stale
-                if (event.data.difficulty !== undefined && difficultyInitialized && event.data.difficulty !== currentDifficulty) return;
-                setCurrentScore(event.data.score);
-                if (event.data.difficulty !== undefined && !difficultyInitialized) {
-                    setCurrentDifficulty(event.data.difficulty);
-                    setDifficultyInitialized(true);
-                }
-            }
-
             // Handle Score Drop (Game Over Detection)
             if (event.data?.type === 'SCORE_DROP_DETECTED' && typeof event.data.peakScore === 'number') {
                 // Only show prompt if we have a valid peak score and haven't already saved
@@ -252,7 +236,7 @@ export function GameInterface({
 
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, [lastSavedScore, currentDifficulty, currentStandard, difficultyInitialized]);
+    }, [lastSavedScore, currentDifficulty, currentStandard]);
 
     const handleEnableWarpAndRefresh = () => {
         enableWarpSettings(romPath);
