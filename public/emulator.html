@@ -379,15 +379,20 @@
             setInterval(() => {
               const palNtscValue = readPalNtsc();
               console.log('[PAL/NTSC] Polling result:', palNtscValue, '(last was:', lastPalNtsc, ')');
+              console.log('[PAL/NTSC] Condition check: 1 !== -1 =', 1 !== -1);
               if (palNtscValue !== lastPalNtsc) {
+                console.log('[PAL/NTSC] Value changed, updating lastPalNtsc to', palNtscValue);
                 lastPalNtsc = palNtscValue;
                 const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
-                console.log('[PAL/NTSC] Changed to:', standard);
+                console.log('[PAL/NTSC] Determined standard:', standard);
                 window.parent.postMessage(
                   { type: "PALNTSC_UPDATE", standard: standard },
                   "*",
                 );
-                              }
+                console.log('[PAL/NTSC] postMessage sent to parent');
+              } else {
+                console.log('[PAL/NTSC] No change detected, skipping');
+              }
             }, 500);
           } else {
             console.log('[PAL/NTSC] Polling NOT started - palNtscConfig:', palNtscConfig);
