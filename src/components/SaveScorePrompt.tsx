@@ -4,12 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useNotification } from '@/context/NotificationContext';
 import { generateScoreHash } from '@/lib/security';
+import { checkCheatsEnabled } from '@/lib/cheat-detection';
 
 interface SaveScorePromptProps {
   peakScore: number;
   gameSlug: string;
   difficulty?: number;
   standard?: 'PAL' | 'NTSC';
+  romPath?: string | null;
   onDismiss: () => void;
   onSaveSuccess?: () => void;
 }
@@ -19,6 +21,7 @@ export function SaveScorePrompt({
   gameSlug,
   difficulty = 0,
   standard = 'PAL' as const,
+  romPath,
   onDismiss,
   onSaveSuccess
 }: SaveScorePromptProps) {
@@ -46,6 +49,14 @@ export function SaveScorePrompt({
   }, [onDismiss]);
 
   const handleSave = async () => {
+    if (romPath) {
+      const { hasCheats } = checkCheatsEnabled(romPath);
+      if (hasCheats) {
+        showNotification("Cheats detected! Score cannot be saved.", "error");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/scores', {

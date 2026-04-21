@@ -179,6 +179,9 @@ export function GameInterface({
     const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
     const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
     const [peakScorePrompt, setPeakScorePrompt] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
+    // Frozen values at game-over moment (cannot be changed after)
+    const [frozenDifficulty, setFrozenDifficulty] = useState<number>(0);
+    const [frozenStandard, setFrozenStandard] = useState<'PAL' | 'NTSC'>('PAL');
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number) => {
@@ -215,6 +218,9 @@ export function GameInterface({
         const handleMessage = (event: MessageEvent) => {
             if (event.data?.type === 'SCORE_DROP_DETECTED' && typeof event.data.peakScore === 'number') {
                 if (event.data.peakScore > 0 && !lastSavedScore) {
+                    // Freeze difficulty and standard at game-over moment
+                    setFrozenDifficulty(currentDifficulty);
+                    setFrozenStandard(currentStandard);
                     setPeakScorePrompt({
                         score: event.data.peakScore,
                         difficulty: currentDifficulty,
@@ -384,6 +390,7 @@ export function GameInterface({
                     gameSlug={gameSlug}
                     difficulty={peakScorePrompt.difficulty}
                     standard={peakScorePrompt.standard}
+                    romPath={romPath}
                     onDismiss={() => setPeakScorePrompt(null)}
                     onSaveSuccess={() => {
                         setLastSavedScore({ score: peakScorePrompt.score, difficulty: peakScorePrompt.difficulty, standard: peakScorePrompt.standard });
