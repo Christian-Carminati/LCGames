@@ -192,6 +192,7 @@ export function GameInterface({
     };
 
     const handlePalNtscUpdate = (standard: 'PAL' | 'NTSC') => {
+        console.log('[GameInterface] PAL/NTSC update received:', standard);
         setCurrentStandard(standard);
     };
 
@@ -391,10 +392,15 @@ export function GameInterface({
                     difficulty={peakScorePrompt.difficulty}
                     standard={peakScorePrompt.standard}
                     romPath={romPath}
-                    onDismiss={() => setPeakScorePrompt(null)}
+                    onDismiss={() => {
+                        setPeakScorePrompt(null);
+                        setCurrentScore(0);
+                    }}
                     onSaveSuccess={() => {
                         setLastSavedScore({ score: peakScorePrompt.score, difficulty: peakScorePrompt.difficulty, standard: peakScorePrompt.standard });
                         setScoreRefreshKey(prev => prev + 1);
+                        setPeakScorePrompt(null);
+                        setCurrentScore(0);
                     }}
                 />
             )}

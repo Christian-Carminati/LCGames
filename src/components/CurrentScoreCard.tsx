@@ -43,6 +43,7 @@ export function CurrentScoreCard({
 
   const getDifficultyLabel = (): string => {
     if (!hasDifficultyLevels) return '';
+    console.log('[CurrentScoreCard] currentDifficulty:', currentDifficulty, 'currentStandard:', currentStandard);
     const diffName = getDifficultyName(currentDifficulty).toUpperCase();
     if (hasPalNtsc) {
       return `${diffName} (${currentStandard})`;
