@@ -184,15 +184,17 @@ export function GameInterface({
     const [frozenStandard, setFrozenStandard] = useState<'PAL' | 'NTSC'>('PAL');
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
-    const handleScoreUpdate = (score: number, difficulty?: number) => {
+    const handleScoreUpdate = (score: number, difficulty?: number, standard?: 'PAL' | 'NTSC') => {
         setCurrentScore(score);
         if (difficulty !== undefined) {
             setCurrentDifficulty(difficulty);
         }
+        if (standard) {
+            setCurrentStandard(standard);
+        }
     };
 
     const handlePalNtscUpdate = (standard: 'PAL' | 'NTSC') => {
-        console.log('[GameInterface] PAL/NTSC update received:', standard);
         setCurrentStandard(standard);
     };
 

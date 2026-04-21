@@ -279,34 +279,19 @@
        * Returns 0 for PAL, 1 for NTSC (or default 0 if not configured)
        */
       function readPalNtsc() {
-        if (!palNtscConfig || !palNtscConfig.address) {
-          console.log('[PAL/NTSC] No config or address');
-          return 0;
-        }
+        if (!palNtscConfig || !palNtscConfig.address) return 0;
 
         const heap = findHeap();
-        if (!heap) {
-          console.log('[PAL/NTSC] No heap found');
-          return 0;
-        }
+        if (!heap) return 0;
 
         let address = parseInt(palNtscConfig.address, 16);
-        console.log('[PAL/NTSC] Raw address:', palNtscConfig.address, '->', address);
 
-        // Apply base offset for PAL/NTSC if available
         if (palNtscConfig.baseOffset) {
-          const offset = parseInt(palNtscConfig.baseOffset, 16);
-          address += offset;
-          console.log('[PAL/NTSC] Applied baseOffset', palNtscConfig.baseOffset, '-> new address:', address);
+          address += parseInt(palNtscConfig.baseOffset, 16);
         }
 
-        if (address >= heap.length) {
-          console.log('[PAL/NTSC] Address out of bounds:', address, '>=', heap.length);
-          return 0;
-        }
-        let palNtscValue = heap[address] || 0;
-        console.log('[PAL/NTSC] Read value at', address, ':', palNtscValue, '(heap length:', heap.length, ')');
-        return palNtscValue;
+        if (address >= heap.length) return 0;
+        return heap[address] || 0;
       }
 
       /**
@@ -374,28 +359,18 @@
           
           // Also start PAL/NTSC polling if configured (runs even without score changes)
           if (palNtscConfig && palNtscConfig.address) {
-            console.log('[PAL/NTSC] Starting polling with config:', palNtscConfig);
             let lastPalNtsc = -1;
             setInterval(() => {
               const palNtscValue = readPalNtsc();
-              console.log('[PAL/NTSC] Polling result:', palNtscValue, '(last was:', lastPalNtsc, ')');
-              console.log('[PAL/NTSC] Condition check: 1 !== -1 =', 1 !== -1);
               if (palNtscValue !== lastPalNtsc) {
-                console.log('[PAL/NTSC] Value changed, updating lastPalNtsc to', palNtscValue);
                 lastPalNtsc = palNtscValue;
                 const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
-                console.log('[PAL/NTSC] Determined standard:', standard);
                 window.parent.postMessage(
                   { type: "PALNTSC_UPDATE", standard: standard },
                   "*",
                 );
-                console.log('[PAL/NTSC] postMessage sent to parent');
-              } else {
-                console.log('[PAL/NTSC] No change detected, skipping');
               }
             }, 500);
-          } else {
-            console.log('[PAL/NTSC] Polling NOT started - palNtscConfig:', palNtscConfig);
           }
         } catch (e) {
                   }
@@ -575,11 +550,12 @@
         if (!isNaN(score)) {
           const difficulty = readDifficulty();
           const palNtscValue = readPalNtsc();
+          const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
 
           monitorPeakScore(score);
 
           window.parent.postMessage(
-            { type: "SCORE_UPDATE", score: score, difficulty: difficulty, palNtsc: palNtscValue },
+            { type: "SCORE_UPDATE", score: score, difficulty: difficulty, palNtsc: palNtscValue, standard: standard },
             "*",
           );
         }
