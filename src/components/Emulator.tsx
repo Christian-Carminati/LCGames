@@ -92,6 +92,7 @@ export function Emulator({ romPath, scoreConfig, onScoreUpdate, isAdmin, difficu
 
       // Handle PAL/NTSC Update
       if (event.data?.type === 'PALNTSC_UPDATE' && (event.data.standard === 'PAL' || event.data.standard === 'NTSC')) {
+        console.log('[Emulator] Received PALNTSC_UPDATE:', event.data.standard);
         onPalNtscUpdate?.(event.data.standard);
       }
 

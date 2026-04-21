@@ -355,23 +355,14 @@
             if (score !== null) {
               sendScoreToParent(score);
             }
+            // Always send PAL/NTSC update when polling (even if score unchanged)
+            const palNtscValue = readPalNtsc();
+            const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
+            window.parent.postMessage(
+              { type: "PALNTSC_UPDATE", standard: standard },
+              "*",
+            );
           }, 1000);
-          
-          // Also start PAL/NTSC polling if configured (runs even without score changes)
-          if (palNtscConfig && palNtscConfig.address) {
-            let lastPalNtsc = -1;
-            setInterval(() => {
-              const palNtscValue = readPalNtsc();
-              if (palNtscValue !== lastPalNtsc) {
-                lastPalNtsc = palNtscValue;
-                const standard = palNtscValue === 1 ? 'NTSC' : 'PAL';
-                window.parent.postMessage(
-                  { type: "PALNTSC_UPDATE", standard: standard },
-                  "*",
-                );
-              }
-            }, 500);
-          }
         } catch (e) {
                   }
       }
