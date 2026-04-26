@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Emulator } from '@/components/Emulator';
 import { ScoreBoard } from '@/components/ScoreBoard';
 import { CurrentScoreCard } from '@/components/CurrentScoreCard';
-import { SaveScorePrompt } from '@/components/SaveScorePrompt';
 
 interface GameInterfaceProps {
     gameSlug: string;
@@ -178,10 +177,6 @@ export function GameInterface({
     const [warpStatus, setWarpStatus] = useState<{ enabled: boolean; missing: string[] }>({ enabled: true, missing: [] });
     const [scoreRefreshKey, setScoreRefreshKey] = useState<number>(0);
     const [lastSavedScore, setLastSavedScore] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
-    const [peakScorePrompt, setPeakScorePrompt] = useState<{ score: number; difficulty: number; standard: 'PAL' | 'NTSC' } | null>(null);
-    // Frozen values at game-over moment (cannot be changed after)
-    const [frozenDifficulty, setFrozenDifficulty] = useState<number>(0);
-    const [frozenStandard, setFrozenStandard] = useState<'PAL' | 'NTSC'>('PAL');
     const scoreBoardRef = useRef<HTMLDivElement>(null);
 
     const handleScoreUpdate = (score: number, difficulty?: number, standard?: 'PAL' | 'NTSC') => {
@@ -215,27 +210,6 @@ export function GameInterface({
             setWarpStatus(status);
         }
     }, [romPath, isC64]);
-
-    // Handle SCORE_DROP_DETECTED from emulator
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'SCORE_DROP_DETECTED' && typeof event.data.peakScore === 'number') {
-                if (event.data.peakScore > 0 && !lastSavedScore) {
-                    // Freeze difficulty and standard at game-over moment
-                    setFrozenDifficulty(currentDifficulty);
-                    setFrozenStandard(currentStandard);
-                    setPeakScorePrompt({
-                        score: event.data.peakScore,
-                        difficulty: currentDifficulty,
-                        standard: currentStandard
-                    });
-                }
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, [lastSavedScore, currentDifficulty, currentStandard]);
 
     const isVideoOnlyGame = platform === 'PC' || (typeof platform === 'string' && platform.toUpperCase() === 'AMIGA' && !!youtubeUrl);
     const embedUrl = youtubeUrl ? getYouTubeEmbedUrl(youtubeUrl) : null;
@@ -385,26 +359,6 @@ export function GameInterface({
                         lastSavedScore={lastSavedScore}
                     />
                 </div>
-            )}
-
-            {peakScorePrompt && (
-                <SaveScorePrompt
-                    peakScore={peakScorePrompt.score}
-                    gameSlug={gameSlug}
-                    difficulty={peakScorePrompt.difficulty}
-                    standard={peakScorePrompt.standard}
-                    romPath={romPath}
-                    onDismiss={() => {
-                        setPeakScorePrompt(null);
-                        setCurrentScore(0);
-                    }}
-                    onSaveSuccess={() => {
-                        setLastSavedScore({ score: peakScorePrompt.score, difficulty: peakScorePrompt.difficulty, standard: peakScorePrompt.standard });
-                        setScoreRefreshKey(prev => prev + 1);
-                        setPeakScorePrompt(null);
-                        setCurrentScore(0);
-                    }}
-                />
             )}
         </div>
     );
