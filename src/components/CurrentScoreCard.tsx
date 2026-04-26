@@ -67,6 +67,11 @@ export function CurrentScoreCard({
       }
     }
 
+    // Calculate combined difficulty: base difficulty + PAL/NTSC offset
+    const baseDifficulty = hasDifficultyLevels ? currentDifficulty : 0;
+    const standardOffset = hasPalNtsc && currentStandard === 'NTSC' ? numDifficultyLevels : 0;
+    const combinedDifficulty = baseDifficulty + standardOffset;
+
     setSubmitting(true);
     try {
       const res = await fetch('/api/scores', {
@@ -75,8 +80,8 @@ export function CurrentScoreCard({
         body: JSON.stringify({
           gameSlug,
           score: capturedScore,
-          difficulty: currentDifficulty,
-          hash: generateScoreHash(capturedScore, gameSlug, currentDifficulty)
+          difficulty: combinedDifficulty,
+          hash: generateScoreHash(capturedScore, gameSlug, combinedDifficulty)
         })
       });
 
@@ -96,10 +101,15 @@ export function CurrentScoreCard({
   };
 
   const handleLoginAndSave = () => {
+    const baseDifficulty = hasDifficultyLevels ? currentDifficulty : 0;
+    const standardOffset = hasPalNtsc && currentStandard === 'NTSC' ? numDifficultyLevels : 0;
+    const combinedDifficulty = baseDifficulty + standardOffset;
+
     sessionStorage.setItem('pendingScore', JSON.stringify({
       gameSlug,
       score: capturedScore,
-      difficulty: currentDifficulty
+      difficulty: combinedDifficulty,
+      romPath
     }));
     signIn('google', { callbackUrl: window.location.href });
   };
