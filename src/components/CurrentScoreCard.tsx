@@ -1,6 +1,10 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
+import { useState } from 'react';
+import { useNotification } from '@/context/NotificationContext';
+import { generateScoreHash } from '@/lib/security';
+import { checkCheatsEnabled } from '@/lib/cheat-detection';
 
 interface CurrentScoreCardProps {
   gameSlug: string;
@@ -28,6 +32,8 @@ export function CurrentScoreCard({
   onScoreSaved
 }: CurrentScoreCardProps) {
   const { data: session } = useSession();
+  const { showNotification } = useNotification();
+  const [submitting, setSubmitting] = useState(false);
 
   const getDifficultyName = (levelIndex: number): string => {
     if (difficultyNames[levelIndex]) {
@@ -50,6 +56,56 @@ export function CurrentScoreCard({
     return diffName;
   };
 
+  const handleSaveScore = async () => {
+    if (!capturedScore || capturedScore === 0) return;
+
+    if (romPath) {
+      const { hasCheats } = checkCheatsEnabled(romPath);
+      if (hasCheats) {
+        showNotification("Cheats detected! Score cannot be saved.", "error");
+        return;
+      }
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameSlug,
+          score: capturedScore,
+          difficulty: currentDifficulty,
+          hash: generateScoreHash(capturedScore, gameSlug, currentDifficulty)
+        })
+      });
+
+      if (res.ok) {
+        showNotification("Score Saved!", "success");
+        onScoreSaved?.();
+      } else {
+        const errorData = await res.json();
+        showNotification(errorData.error || "Failed to save score.", "error");
+      }
+    } catch (e) {
+      console.error("Failed to save score", e);
+      showNotification("Error saving score.", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleLoginAndSave = () => {
+    sessionStorage.setItem('pendingScore', JSON.stringify({
+      gameSlug,
+      score: capturedScore,
+      difficulty: currentDifficulty
+    }));
+    signIn('google', { callbackUrl: window.location.href });
+  };
+
+  const isDisabled = !capturedScore || capturedScore === 0 || submitting;
+
   return (
     <div className="nes-container is-rounded is-dark with-title">
       <p className="title">CURRENT SCORE</p>
@@ -67,8 +123,25 @@ export function CurrentScoreCard({
         </div>
       )}
 
-      <div className="mt-4 text-center">
-        <p className="text-xs text-gray-500">Score will be captured at game over</p>
+      <div className="mt-4 flex flex-col gap-3">
+        {session ? (
+          <button
+            type="button"
+            className={`nes-btn is-success w-full ${isDisabled ? 'is-disabled' : ''}`}
+            onClick={handleSaveScore}
+            disabled={isDisabled}
+          >
+            {submitting ? 'SAVING...' : 'SAVE SCORE'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="nes-btn is-primary w-full"
+            onClick={handleLoginAndSave}
+          >
+            LOGIN TO SAVE
+          </button>
+        )}
       </div>
     </div>
   );
