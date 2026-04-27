@@ -24,7 +24,7 @@ export default async function Home() {
         <p className="title">Welcome to LC-Games Archive!</p>
         <div className="flex flex-col gap-3 text-gray-200">
           <p className="text-sm md:text-base">
-            Relive the golden age of gaming with our online Commodore 64 emulator. No downloads required—just pure retro fun directly in your browser!
+            Relive the golden age of gaming with the online Commodore 64 emulator. No downloads required—just pure retro fun directly in your browser!
           </p>
           <div className="mt-1">
             <p className="text-yellow-400 font-bold text-sm md:text-base">🏆 High Score Challenge:</p>
