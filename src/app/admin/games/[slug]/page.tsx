@@ -17,7 +17,7 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
   // Safe cast for scoreConfig
   interface ScoreConfig {
       address: string;
-      type: string;
+      type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
       length: number;
   }
   
