@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface ScoreConfig {
   address: string;
-  type: string;
+  type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
   length: number;
   multiplier?: number;
   baseOffset?: string;

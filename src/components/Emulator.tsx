@@ -4,7 +4,7 @@ interface EmulatorProps {
   romPath: string | null;
   scoreConfig?: {
       address: string;
-      type: string;
+      type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
       length: number;
       baseOffset?: string;
       endianness?: string;

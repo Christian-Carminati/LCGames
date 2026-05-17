@@ -11,7 +11,7 @@ interface GameInterfaceProps {
     romPath: string | null;
     scoreConfig?: {
         address: string;
-        type: string;
+        type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
         length: number;
         multiplier?: number;
         baseOffset?: string;

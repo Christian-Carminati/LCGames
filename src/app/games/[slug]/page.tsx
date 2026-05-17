@@ -33,7 +33,7 @@ export default async function GameDetailPage(props: PageProps) {
   // Safe cast for scoreConfig since Prisma Json type is generic
   interface ScoreConfig {
       address: string;
-      type: 'string';
+      type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
       length: number;
       multiplier?: number;
       baseOffset?: string;
