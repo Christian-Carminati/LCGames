@@ -339,6 +339,7 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
                     <option value="byte">Byte</option>
                     <option value="int">Int (Little Endian)</option>
                     <option value="bcd">BCD</option>
+                    <option value="digits">Digits</option>
                     <option value="string">String</option>
                 </select>
             </div>
