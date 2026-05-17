@@ -494,6 +494,19 @@
           return parseInt(strVal, 10);
         }
 
+        if (type === "digits") {
+          // Each byte is a single digit (0-9), e.g. [0x01, 0x02, 0x03, 0x04] -> 1234
+          let strVal = "";
+          let started = false;
+          for (const b of bytes) {
+            if (b < 0 || b > 9) return 0;
+            if (b === 0 && !started) continue;
+            started = true;
+            strVal += b.toString();
+          }
+          return strVal === "" ? 0 : parseInt(strVal, 10);
+        }
+
         if (type === "string") {
           // ASCII/PETSCII String (e.g. chars "0", "0", "1", "0" -> 10)
           let strVal = "";
