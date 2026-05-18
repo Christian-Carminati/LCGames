@@ -5,28 +5,29 @@ import { notFound } from 'next/navigation';
 export default async function EditGamePage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const { slug } = params;
-  
+
   const game = await prisma.game.findUnique({
-    where: { slug }
+    where: { slug },
+    include: { gameConfig: true },
   });
 
   if (!game) {
     notFound();
   }
-  
-  // Safe cast for scoreConfig
+
   interface ScoreConfig {
       address: string;
       type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
       length: number;
   }
-  
-  const scoreConfig = (game.scoreConfig && typeof game.scoreConfig === 'object') 
-      ? game.scoreConfig as unknown as ScoreConfig 
+
+  const scoreConfig = (game.gameConfig?.scoreConfig && typeof game.gameConfig.scoreConfig === 'object')
+      ? game.gameConfig.scoreConfig as unknown as ScoreConfig
       : undefined;
-  
-  const difficultyConfigRaw = game.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number, levelNames?: string[] } | null;
-  const palNtscConfigRaw = game.palNtscConfig as { address?: string, baseOffset?: string, numStandards?: number } | null;
+
+  const difficultyConfigRaw = game.gameConfig?.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number, levelNames?: string[] } | null;
+  const palNtscConfigRaw = game.gameConfig?.palNtscConfig as { address?: string, baseOffset?: string, numStandards?: number } | null;
+
   const gameData = {
       title: game.title,
       platform: game.platform,
@@ -49,11 +50,6 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
       },
       scoreConfig: scoreConfig || { address: '', type: 'byte', length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
   };
-
-  // Actually, let's fix the assignment to avoid 'as any' in the object literal if possible.
-  // gameData is being inferred. 
-  // I'll just use the variable `scoreConfig` which is typed correctly above.
-
 
   return (
     <div>

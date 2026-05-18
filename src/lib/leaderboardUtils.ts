@@ -14,7 +14,7 @@ export interface OldScoreEntry {
   uploadedAt: string;
 }
 
-export async function saveScores(newScores: OldScoreEntry[], gameSlug: string = 'unknown'): Promise<OldScoreEntry[]> {
+export async function saveScores(newScores: { name: string; score: string; pos: number }[], gameSlug: string = 'unknown'): Promise<OldScoreEntry[]> {
   console.warn("DB SaveScores called. Requires user ID relationship. Returning mock updated board.");
   const result = await getLeaderboard({});
   return result.entries.map(e => ({

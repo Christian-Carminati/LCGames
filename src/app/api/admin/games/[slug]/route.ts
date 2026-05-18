@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireAdminAuth } from '@/lib/admin-auth';
 import { GameSchema } from '@/lib/validations';
+import { getGameBySlug, updateGame, deleteGame } from '@/lib/games';
+import { logAction } from '@/lib/audit';
 import type { Prisma } from '@prisma/client';
 
 export async function GET(
@@ -12,17 +14,11 @@ export async function GET(
   if (authError) return authError;
 
   const params = await props.params;
-  const { slug } = params;
-  
   try {
-    const game = await prisma.game.findUnique({
-      where: { slug }
-    });
-    
+    const game = await getGameBySlug(params.slug);
     if (!game) {
       return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
-    
     return NextResponse.json(game);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch game' }, { status: 500 });
@@ -38,7 +34,6 @@ export async function PUT(
 
   const params = await props.params;
   try {
-    const { slug } = params;
     const body = await request.json();
 
     const result = GameSchema.safeParse(body);
@@ -49,32 +44,39 @@ export async function PUT(
       );
     }
 
-    const existing = await prisma.game.findUnique({ where: { slug } });
+    const existing = await prisma.game.findUnique({ where: { slug: params.slug } });
     if (!existing) {
-       return NextResponse.json({ error: 'Game not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
 
-    const updated = await prisma.game.update({
-      where: { slug },
-      data: {
-        title: result.data.title,
-        description: result.data.description,
-        platform: result.data.platform,
-        genre: result.data.genre,
-        imageUrl: result.data.imageUrl || undefined,
-        url: result.data.url || undefined,
-        romPath: result.data.romPath,
-        youtubeUrl: result.data.youtubeUrl || undefined,
-        scoreConfig: result.data.scoreConfig as Prisma.InputJsonValue | undefined,
-        difficultyConfig: result.data.difficultyConfig as Prisma.InputJsonValue | undefined,
-        palNtscConfig: result.data.palNtscConfig as Prisma.InputJsonValue | undefined,
-        published: result.data.published ?? true
-      }
-    });
+    const { scoreConfig, difficultyConfig, palNtscConfig, ...gameFields } = result.data;
+    const updated = await updateGame(params.slug, {
+      title: gameFields.title,
+      description: gameFields.description,
+      platform: gameFields.platform,
+      genre: gameFields.genre,
+      imageUrl: gameFields.imageUrl || undefined,
+      url: gameFields.url || undefined,
+      romPath: gameFields.romPath,
+      youtubeUrl: gameFields.youtubeUrl || undefined,
+      published: gameFields.published ?? true,
+      scoreConfig: scoreConfig as Prisma.InputJsonValue | undefined,
+      difficultyConfig: difficultyConfig as Prisma.InputJsonValue | undefined,
+      palNtscConfig: palNtscConfig as Prisma.InputJsonValue | undefined,
+    } as any);
+
+    if (updated) {
+      await logAction({
+        action: 'UPDATE_GAME',
+        entityType: 'Game',
+        entityId: updated.id,
+        adminId: 'admin',
+      });
+    }
 
     return NextResponse.json({ success: true, game: updated });
   } catch (error) {
-     console.error("Update error:", error);
+    console.error("Update error:", error);
     return NextResponse.json({ error: 'Failed to update game' }, { status: 500 });
   }
 }
@@ -88,17 +90,13 @@ export async function DELETE(
 
   const params = await props.params;
   try {
-    const { slug } = params;
-    
-    await prisma.$transaction([
-        prisma.score.deleteMany({
-            where: { gameSlug: slug }
-        }),
-        prisma.game.delete({
-            where: { slug }
-        })
-    ]);
-    
+    await deleteGame(params.slug);
+    await logAction({
+      action: 'DELETE_GAME',
+      entityType: 'Game',
+      entityId: params.slug,
+      adminId: 'admin',
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete error:", error);

@@ -1,4 +1,3 @@
-
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
@@ -7,10 +6,25 @@ import Link from 'next/link';
 import { DonateButton } from '@/components/DonateButton';
 import { GameInterface } from '@/components/GameInterface';
 
-export const dynamicParams = true; // Allow dynamic fallback
+export const dynamicParams = true;
 
 interface PageProps {
     params: Promise<{ slug: string }>;
+}
+
+interface ScoreConfig {
+    address: string;
+    type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
+    length: number;
+    multiplier?: number;
+    baseOffset?: string;
+    endianness?: string;
+}
+
+interface PalNtscConfig {
+    address: string;
+    baseOffset?: string;
+    numStandards?: number;
 }
 
 export default async function GameDetailPage(props: PageProps) {
@@ -19,9 +33,10 @@ export default async function GameDetailPage(props: PageProps) {
   const cookieStore = await cookies();
   const adminToken = cookieStore.get('admin_token')?.value;
   const isAdmin = adminToken ? verifyAdminToken(adminToken) : false;
-  
+
   const game = await prisma.game.findUnique({
-      where: { slug }
+      where: { slug },
+      include: { gameConfig: true },
   });
 
   if (!game) {
@@ -29,30 +44,16 @@ export default async function GameDetailPage(props: PageProps) {
   }
 
   const romPath = game.romPath || null;
-  
-  // Safe cast for scoreConfig since Prisma Json type is generic
-  interface ScoreConfig {
-      address: string;
-      type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
-      length: number;
-      multiplier?: number;
-      baseOffset?: string;
-      endianness?: string;
-  }
-  
-  const scoreConfig = (game.scoreConfig && typeof game.scoreConfig === 'object') 
-      ? game.scoreConfig as unknown as ScoreConfig 
+
+  const scoreConfig = (game.gameConfig?.scoreConfig && typeof game.gameConfig.scoreConfig === 'object')
+      ? game.gameConfig.scoreConfig as unknown as ScoreConfig
       : undefined;
 
-  interface PalNtscConfig {
-      address: string;
-      baseOffset?: string;
-      numStandards?: number;
-  }
-
-  const palNtscConfig = (game.palNtscConfig && typeof game.palNtscConfig === 'object')
-      ? game.palNtscConfig as unknown as PalNtscConfig
+  const palNtscConfig = (game.gameConfig?.palNtscConfig && typeof game.gameConfig.palNtscConfig === 'object')
+      ? game.gameConfig.palNtscConfig as unknown as PalNtscConfig
       : undefined;
+
+  const difficultyConfig = (game.gameConfig?.difficultyConfig as { address: string } | null) || undefined;
 
   return (
     <div className="container mx-auto pb-16 px-4">
@@ -67,7 +68,7 @@ export default async function GameDetailPage(props: PageProps) {
         )}
       </div>
 
-      <GameInterface 
+      <GameInterface
         gameSlug={slug}
         gameTitle={game.title}
         romPath={romPath}
@@ -79,7 +80,7 @@ export default async function GameDetailPage(props: PageProps) {
         description={game.description || ''}
         isAdmin={isAdmin}
         youtubeUrl={game.youtubeUrl || undefined}
-        difficultyConfig={(game.difficultyConfig as { address: string } | null) || undefined}
+        difficultyConfig={difficultyConfig}
         palNtscConfig={palNtscConfig}
         />
 
@@ -99,4 +100,3 @@ export default async function GameDetailPage(props: PageProps) {
     </div>
   );
 }
-

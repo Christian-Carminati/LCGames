@@ -17,8 +17,9 @@ export default async function AdminScoresPage(props: {
       select: {
           slug: true,
           title: true,
-          difficultyConfig: true,
-          palNtscConfig: true
+          gameConfig: {
+              select: { difficultyConfig: true, palNtscConfig: true }
+          }
       }
   });
   const gameMap = new Map((games as any[]).map(g => [g.slug, g]));
@@ -34,8 +35,8 @@ export default async function AdminScoresPage(props: {
   // Transform to flat format
   let allScores = (rawScores as any[]).map((s: any) => {
       const gameInfo = gameMap.get(s.gameSlug);
-      const hasPalNtsc = !!gameInfo?.palNtscConfig;
-      const difficultyConfig = gameInfo?.difficultyConfig as { numLevels?: number } | null;
+      const hasPalNtsc = !!gameInfo?.gameConfig?.palNtscConfig;
+      const difficultyConfig = gameInfo?.gameConfig?.difficultyConfig as { numLevels?: number } | null;
       const numDifficultyLevels = difficultyConfig?.numLevels || 1;
       const maxLevels = Math.max(1, numDifficultyLevels);
       
@@ -146,8 +147,8 @@ export default async function AdminScoresPage(props: {
           <tbody>
             {pagedScores.map((item: any) => {
                 const gameInfo = gameMap.get(item.gameSlug);
-                const hasPalNtsc = !!gameInfo?.palNtscConfig;
-                const difficultyConfig = gameInfo?.difficultyConfig as { numLevels?: number } | null;
+                const hasPalNtsc = !!gameInfo?.gameConfig?.palNtscConfig;
+                const difficultyConfig = gameInfo?.gameConfig?.difficultyConfig as { numLevels?: number } | null;
                 const numDifficultyLevels = difficultyConfig?.numLevels || 1;
 
                 return (
