@@ -18,7 +18,7 @@ export async function setup() {
   fs.writeFileSync(URL_FILE, connectionUri);
 
   // Run db push to sync the schema (project has only incremental migrations)
-  execSync('npx prisma db push --skip-generate', {
+  execSync('npx prisma db push', {
     env: { ...process.env, DATABASE_URL: connectionUri },
     cwd: path.join(__dirname, '../..'),
     stdio: 'inherit',
