@@ -17,6 +17,10 @@ function getDbUrl(): string {
   );
 }
 
+const dbUrl = getDbUrl();
+// Override so @/lib/db (used by service modules) also connects to the test container
+process.env.DATABASE_URL = dbUrl;
+
 export const prisma = new PrismaClient({
-  datasources: { db: { url: getDbUrl() } },
+  datasources: { db: { url: dbUrl } },
 });

@@ -105,4 +105,70 @@ describe('Schema Integrity', () => {
       ).rejects.toThrow(Prisma.PrismaClientKnownRequestError);
     });
   });
+
+  describe('GameConfig', () => {
+    it('creates GameConfig with 1:1 relation to Game', async () => {
+      const game = await seedGame(prisma);
+      const config = await prisma.gameConfig.create({
+        data: {
+          gameId: game.id,
+          scoreConfig: { address: '0x0800', type: 'bcd', length: 3 },
+        },
+      });
+
+      expect(config.id).toBeTruthy();
+      expect(config.gameId).toBe(game.id);
+
+      const loaded = await prisma.game.findUnique({
+        where: { id: game.id },
+        include: { gameConfig: true },
+      });
+      expect(loaded?.gameConfig?.scoreConfig).toEqual({ address: '0x0800', type: 'bcd', length: 3 });
+    });
+
+    it('cascades delete when Game is removed', async () => {
+      const game = await seedGame(prisma);
+      await prisma.gameConfig.create({
+        data: { gameId: game.id },
+      });
+
+      await prisma.game.delete({ where: { id: game.id } });
+
+      const configs = await prisma.gameConfig.findMany();
+      expect(configs).toHaveLength(0);
+    });
+  });
+
+  describe('AuditLog', () => {
+    it('creates audit log entry', async () => {
+      const entry = await prisma.auditLog.create({
+        data: {
+          action: 'DELETE_SCORE',
+          entityType: 'Score',
+          entityId: 'test-id',
+          adminId: 'admin-id',
+        },
+      });
+
+      expect(entry.id).toBeTruthy();
+      expect(entry.action).toBe('DELETE_SCORE');
+      expect(entry.createdAt).toBeInstanceOf(Date);
+    });
+
+    it('stores optional oldValue and newValue', async () => {
+      const entry = await prisma.auditLog.create({
+        data: {
+          action: 'UPDATE_DIFFICULTY',
+          entityType: 'Score',
+          entityId: 'test-id',
+          adminId: 'admin-id',
+          oldValue: { difficulty: 0 },
+          newValue: { difficulty: 1 },
+        },
+      });
+
+      expect(entry.oldValue).toEqual({ difficulty: 0 });
+      expect(entry.newValue).toEqual({ difficulty: 1 });
+    });
+  });
 });

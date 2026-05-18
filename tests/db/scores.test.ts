@@ -209,4 +209,41 @@ describe('Scores', () => {
     // New value is lower — should keep existing
     expect(Number(existing!.value)).toBe(500);
   });
+
+  describe('Soft delete', () => {
+    it('soft-deletes a score by setting deletedAt', async () => {
+      const user = await seedUser(prisma);
+      const game = await seedGame(prisma);
+      const score = await prisma.score.create({
+        data: { value: 500, userId: user.id, gameSlug: game.slug },
+      });
+
+      await prisma.score.update({
+        where: { id: score.id },
+        data: { deletedAt: new Date() },
+      });
+
+      const active = await prisma.score.findMany({ where: { deletedAt: null } });
+      expect(active).toHaveLength(0);
+
+      const all = await prisma.score.findMany();
+      expect(all).toHaveLength(1);
+    });
+
+    it('excludes soft-deleted scores from queries', async () => {
+      const user = await seedUser(prisma);
+      const game = await seedGame(prisma);
+
+      await prisma.score.create({ data: { value: 100, userId: user.id, gameSlug: game.slug } });
+      const score2 = await prisma.score.create({ data: { value: 200, userId: user.id, gameSlug: game.slug, difficulty: 1 } });
+      await prisma.score.update({ where: { id: score2.id }, data: { deletedAt: new Date() } });
+
+      const active = await prisma.score.findMany({
+        where: { deletedAt: null },
+        orderBy: { value: 'desc' },
+      });
+      expect(active).toHaveLength(1);
+      expect(Number(active[0].value)).toBe(100);
+    });
+  });
 });
