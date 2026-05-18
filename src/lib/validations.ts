@@ -1,5 +1,27 @@
 import { z } from 'zod';
 
+export const ScoreConfigSchema = z.object({
+  address: z.string().regex(/^0x[0-9a-fA-F]+$/, 'Must be hex like 0x0800'),
+  type: z.enum(['byte', 'int', 'bcd', 'string', 'digits']),
+  length: z.number().int().min(1).max(8),
+  baseOffset: z.string().regex(/^0x[0-9a-fA-F]+$/).optional(),
+  endianness: z.enum(['big', 'little']).optional(),
+  multiplier: z.number().int().min(1).optional(),
+});
+
+export const DifficultyConfigSchema = z.object({
+  address: z.string().regex(/^0x[0-9a-fA-F]+$/),
+  baseOffset: z.string().regex(/^0x[0-9a-fA-F]+$/).optional(),
+  numLevels: z.number().int().min(1).max(20).optional(),
+  levelNames: z.string().optional(),
+}).optional();
+
+export const PalNtscConfigSchema = z.object({
+  address: z.string().regex(/^0x[0-9a-fA-F]+$/),
+  baseOffset: z.string().regex(/^0x[0-9a-fA-F]+$/).optional(),
+  numStandards: z.number().int().min(1).max(2).optional(),
+}).optional();
+
 export const GameSchema = z.object({
   title: z.string().min(1).max(100),
   slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
@@ -10,9 +32,9 @@ export const GameSchema = z.object({
   url: z.string().url().optional().or(z.literal('')),
   romPath: z.string().optional(),
   youtubeUrl: z.string().url().optional().or(z.literal('')),
-  scoreConfig: z.record(z.string(), z.unknown()).nullish(),
-  difficultyConfig: z.record(z.string(), z.unknown()).nullish(),
-  palNtscConfig: z.record(z.string(), z.unknown()).nullish(),
+  scoreConfig: ScoreConfigSchema.nullish(),
+  difficultyConfig: DifficultyConfigSchema,
+  palNtscConfig: PalNtscConfigSchema,
   published: z.boolean().optional(),
 }).transform(data => ({
   ...data,
