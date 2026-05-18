@@ -67,11 +67,8 @@ model Game {
   url           String?
   romPath       String?
   youtubeUrl    String?
-  published         Boolean  @default(true)
-  scoreConfig       Json?
-  difficultyConfig  Json?
-  palNtscConfig     Json?
-  createdAt         DateTime @default(now())
+  published     Boolean  @default(true)
+  createdAt     DateTime @default(now())
   updatedAt         DateTime @updatedAt
   scores            Score[]
   gameConfig        GameConfig?

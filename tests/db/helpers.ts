@@ -25,9 +25,6 @@ export function createGameData(overrides?: Partial<{
   romPath: string;
   youtubeUrl: string;
   published: boolean;
-  scoreConfig: Record<string, unknown>;
-  difficultyConfig: Record<string, unknown>;
-  palNtscConfig: Record<string, unknown>;
 }>) {
   const id = crypto.randomUUID().slice(0, 8);
   return {
@@ -86,6 +83,8 @@ export async function resetDb(db: PrismaClient) {
     db.session.deleteMany(),
     db.verificationToken.deleteMany(),
     db.score.deleteMany(),
+    db.auditLog.deleteMany(),
+    db.gameConfig.deleteMany(),
     db.game.deleteMany(),
     db.user.deleteMany(),
   ]);

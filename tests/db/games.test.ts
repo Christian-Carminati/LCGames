@@ -33,18 +33,24 @@ describe('Games', () => {
     expect(game.published).toBe(true);
   });
 
-  it('stores and reads JSON fields', async () => {
+  it('stores and reads JSON fields via GameConfig', async () => {
     const scoreConfig = { address: '0x0800', type: 'bcd', length: 3 };
     const difficultyConfig = { address: '0x2299' };
     const palNtscConfig = { address: '0x2a00', baseOffset: '0x0', numStandards: 2 };
 
     const game = await prisma.game.create({
-      data: createGameData({ scoreConfig, difficultyConfig, palNtscConfig }),
+      data: {
+        ...createGameData(),
+        gameConfig: {
+          create: { scoreConfig, difficultyConfig, palNtscConfig },
+        },
+      },
+      include: { gameConfig: true },
     });
 
-    expect(game.scoreConfig).toEqual(scoreConfig);
-    expect(game.difficultyConfig).toEqual(difficultyConfig);
-    expect(game.palNtscConfig).toEqual(palNtscConfig);
+    expect(game.gameConfig?.scoreConfig).toEqual(scoreConfig);
+    expect(game.gameConfig?.difficultyConfig).toEqual(difficultyConfig);
+    expect(game.gameConfig?.palNtscConfig).toEqual(palNtscConfig);
   });
 
   it('updates game fields', async () => {
