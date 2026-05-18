@@ -34,9 +34,9 @@ describe('Leaderboard', () => {
     });
 
     expect(scores).toHaveLength(3);
-    expect(scores[0].value).toBe(999);
-    expect(scores[1].value).toBe(500);
-    expect(scores[2].value).toBe(100);
+    expect(Number(scores[0].value)).toBe(999);
+    expect(Number(scores[1].value)).toBe(500);
+    expect(Number(scores[2].value)).toBe(100);
     expect(scores[0].game.title).toBe('Another Game');
     expect(scores[0].user.name).toBe('Test User');
   });
@@ -57,8 +57,8 @@ describe('Leaderboard', () => {
     });
 
     expect(scores).toHaveLength(100);
-    expect(scores[0].value).toBe(149);
-    expect(scores[99].value).toBe(50);
+    expect(Number(scores[0].value)).toBe(149);
+    expect(Number(scores[99].value)).toBe(50);
   });
 
   it('includes user name for each score', async () => {

@@ -13,6 +13,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  deletedAt     DateTime?
   accounts      Account[]
   sessions      Session[]
   scores        Score[]
@@ -56,37 +57,67 @@ model VerificationToken {
 }
 
 model Game {
-  id          String   @id @default(cuid())
-  slug        String   @unique // The ID used in URLs (e.g. "hero-is-back-c64")
-  title       String
-  description String?
-  platform    String
-  genre       String?
-  imageUrl    String?
-  url         String?  // Itch.io URL
-  romPath     String?
-  youtubeUrl       String?  // YouTube video URL (used for PC games instead of emulator)
-  difficultyConfig Json?    // Config for reading difficulty from memory, e.g. { "address": "0x2299" }
-  palNtscConfig     Json?    // Config for PAL/NTSC selection, e.g. { "address": "0x2xxx", "baseOffset": "0x0", "numStandards": 2 }
-  scoreConfig      Json?    // Stores address, type, length, endianness
-  published        Boolean   @default(true) // When false, only admin can see the game
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  scores      Score[]
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  description   String?
+  platform      String
+  genre         String?
+  imageUrl      String?
+  url           String?
+  romPath       String?
+  youtubeUrl    String?
+  published         Boolean  @default(true)
+  scoreConfig       Json?
+  difficultyConfig  Json?
+  palNtscConfig     Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  scores            Score[]
+  gameConfig        GameConfig?
+}
+
+model GameConfig {
+  id               String   @id @default(cuid())
+  gameId           String   @unique
+  game             Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  scoreConfig      Json?
+  difficultyConfig Json?
+  palNtscConfig    Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Score {
   id         String   @id @default(cuid())
-  value      Int
-  difficulty Int      @default(0) // Difficulty level the player was on (0 if game has no difficulty)
+  value      BigInt
+  difficulty Int      @default(0)
   userId     String
   gameSlug   String
+  deletedAt  DateTime?
+  scoreHash  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   game Game @relation(fields: [gameSlug], references: [slug])
 
-  @@unique([userId, gameSlug, difficulty]) // One high score per user per game per difficulty
+  @@unique([userId, gameSlug, difficulty])
+  @@index([gameSlug, difficulty, value])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  adminId    String
+  oldValue   Json?
+  newValue   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

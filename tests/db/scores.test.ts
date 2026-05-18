@@ -16,7 +16,7 @@ describe('Scores', () => {
     });
 
     expect(score.id).toBeTruthy();
-    expect(score.value).toBe(500);
+    expect(Number(score.value)).toBe(500);
     expect(score.difficulty).toBe(0);
     expect(score.userId).toBe(user.id);
     expect(score.gameSlug).toBe(game.slug);
@@ -81,8 +81,8 @@ describe('Scores', () => {
     });
 
     expect(scores).toHaveLength(2);
-    expect(scores[0].value).toBe(500);
-    expect(scores[1].value).toBe(100);
+    expect(Number(scores[0].value)).toBe(500);
+    expect(Number(scores[1].value)).toBe(100);
   });
 
   it('fetches top 20 scores filtered by game and difficulty', async () => {
@@ -101,8 +101,8 @@ describe('Scores', () => {
     });
 
     expect(scores).toHaveLength(2);
-    expect(scores[0].value).toBe(300);
-    expect(scores[1].value).toBe(100);
+    expect(Number(scores[0].value)).toBe(300);
+    expect(Number(scores[1].value)).toBe(100);
   });
 
   it('allows score value of 0', async () => {
@@ -113,7 +113,7 @@ describe('Scores', () => {
       data: { value: 0, userId: user.id, gameSlug: game.slug },
     });
 
-    expect(score.value).toBe(0);
+    expect(Number(score.value)).toBe(0);
   });
 
   it('allows negative score values', async () => {
@@ -124,7 +124,7 @@ describe('Scores', () => {
       data: { value: -5, userId: user.id, gameSlug: game.slug },
     });
 
-    expect(score.value).toBe(-5);
+    expect(Number(score.value)).toBe(-5);
   });
 
   it('enforces foreign key — score without existing user fails', async () => {
@@ -166,7 +166,7 @@ describe('Scores', () => {
 
     const scores = await prisma.score.findMany({ where: { userId: user.id } });
     expect(scores).toHaveLength(1);
-    expect(scores[0].value).toBe(500);
+    expect(Number(scores[0].value)).toBe(500);
   });
 
   it('upsert logic: updates score when new value is higher', async () => {
@@ -182,7 +182,7 @@ describe('Scores', () => {
         userId_gameSlug_difficulty: { userId: user.id, gameSlug: game.slug, difficulty: 0 },
       },
     });
-    if (existing && 1000 > existing.value) {
+    if (existing && 1000 > Number(existing.value)) {
       await prisma.score.update({
         where: { id: existing.id },
         data: { value: 1000 },
@@ -190,7 +190,7 @@ describe('Scores', () => {
     }
 
     const score = await prisma.score.findUniqueOrThrow({ where: { id: existing!.id } });
-    expect(score.value).toBe(1000);
+    expect(Number(score.value)).toBe(1000);
   });
 
   it('upsert logic: keeps existing score when new value is lower', async () => {
@@ -207,6 +207,6 @@ describe('Scores', () => {
       },
     });
     // New value is lower — should keep existing
-    expect(existing!.value).toBe(500);
+    expect(Number(existing!.value)).toBe(500);
   });
 });
