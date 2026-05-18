@@ -12,6 +12,7 @@ export default defineConfig({
     setupFiles: ['./tests/db/client.ts'],
     testTimeout: 30000,
     hookTimeout: 30000,
+    fileParallelism: false,
     include: ['tests/db/**/*.test.ts'],
   },
 });
