@@ -156,7 +156,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       });
 
       if (!res.ok) {
-        throw new Error('Failed to save game');
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to save game');
       }
 
       router.push('/admin/games');
