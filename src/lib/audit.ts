@@ -20,6 +20,7 @@ export async function logAction(params: {
 }): Promise<void> {
   await prisma.auditLog.create({
     data: {
+      id: crypto.randomUUID(),
       action: params.action,
       entityType: params.entityType,
       entityId: params.entityId,

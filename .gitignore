@@ -42,8 +42,10 @@ next-env.d.ts
 
 # Qwen
 .agent/
+.agents/
 .qwen/
 QWEN.md
+
 
 # 
 

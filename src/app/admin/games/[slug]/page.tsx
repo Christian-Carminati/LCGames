@@ -18,11 +18,14 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
   // Safe cast for scoreConfig
   interface ScoreConfig {
       address: string;
-      type: string;
+      type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
       length: number;
+      multiplier?: number;
+      baseOffset?: string;
+      endianness?: string;
   }
   
-  const scoreConfig = (game.GameConfig?.scoreConfig && typeof game.GameConfig.scoreConfig === 'object') 
+  const scoreConfigRaw = (game.GameConfig?.scoreConfig && typeof game.GameConfig.scoreConfig === 'object') 
       ? game.GameConfig.scoreConfig as unknown as ScoreConfig 
       : undefined;
   
@@ -48,7 +51,7 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
         baseOffset: palNtscConfigRaw?.baseOffset || '',
         numStandards: palNtscConfigRaw?.numStandards || 2
       },
-      scoreConfig: scoreConfig || { address: '', type: 'byte', length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
+      scoreConfig: scoreConfigRaw || { address: '', type: 'byte' as const, length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
   };
 
   // Actually, let's fix the assignment to avoid 'as any' in the object literal if possible.

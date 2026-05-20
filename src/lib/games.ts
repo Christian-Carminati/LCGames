@@ -23,16 +23,16 @@ export interface GameWithConfig {
 function mergeGameConfig(game: any): GameWithConfig {
   return {
     ...game,
-    scoreConfig: game.gameConfig?.scoreConfig ?? null,
-    difficultyConfig: game.gameConfig?.difficultyConfig ?? null,
-    palNtscConfig: game.gameConfig?.palNtscConfig ?? null,
+    scoreConfig: game.GameConfig?.scoreConfig ?? null,
+    difficultyConfig: game.GameConfig?.difficultyConfig ?? null,
+    palNtscConfig: game.GameConfig?.palNtscConfig ?? null,
   };
 }
 
 export async function getGameBySlug(slug: string): Promise<GameWithConfig | null> {
   const game = await prisma.game.findUnique({
     where: { slug },
-    include: { gameConfig: true },
+    include: { GameConfig: true },
   });
   return game ? mergeGameConfig(game) : null;
 }
@@ -40,7 +40,7 @@ export async function getGameBySlug(slug: string): Promise<GameWithConfig | null
 export async function listGames(): Promise<GameWithConfig[]> {
   const games = await prisma.game.findMany({
     orderBy: { title: 'asc' },
-    include: { gameConfig: true },
+    include: { GameConfig: true },
   });
   return games.map(mergeGameConfig);
 }
@@ -55,15 +55,17 @@ export async function createGame(data: Prisma.GameCreateInput & {
   const game = await prisma.game.create({
     data: {
       ...gameData,
-      gameConfig: {
+      GameConfig: {
         create: {
+          id: crypto.randomUUID(),
           scoreConfig: (scoreConfig ?? Prisma.DbNull) as Prisma.InputJsonValue,
           difficultyConfig: (difficultyConfig ?? Prisma.DbNull) as Prisma.InputJsonValue,
           palNtscConfig: (palNtscConfig ?? Prisma.DbNull) as Prisma.InputJsonValue,
+          updatedAt: new Date(),
         },
       },
     },
-    include: { gameConfig: true },
+    include: { GameConfig: true },
   });
 
   return mergeGameConfig(game);
@@ -83,12 +85,14 @@ export async function updateGame(
     where: { slug },
     data: {
       ...gameData,
-      gameConfig: scoreConfig !== undefined || difficultyConfig !== undefined || palNtscConfig !== undefined ? {
+      GameConfig: scoreConfig !== undefined || difficultyConfig !== undefined || palNtscConfig !== undefined ? {
         upsert: {
           create: {
+            id: crypto.randomUUID(),
             scoreConfig: (scoreConfig ?? Prisma.DbNull) as Prisma.InputJsonValue,
             difficultyConfig: (difficultyConfig ?? Prisma.DbNull) as Prisma.InputJsonValue,
             palNtscConfig: (palNtscConfig ?? Prisma.DbNull) as Prisma.InputJsonValue,
+            updatedAt: new Date(),
           },
           update: {
             ...(scoreConfig !== undefined ? { scoreConfig: scoreConfig as Prisma.InputJsonValue } : {}),
@@ -98,7 +102,7 @@ export async function updateGame(
         },
       } : undefined,
     },
-    include: { gameConfig: true },
+    include: { GameConfig: true },
   });
 
   return mergeGameConfig(game);
