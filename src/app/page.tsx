@@ -31,9 +31,9 @@ export default async function Home() {
             <p className="text-sm md:text-base">Log in to save your scores and compete with players worldwide. Can you reach the top of the leaderboard?</p>
           </div>
           <div className="mt-2 text-center">
-            <p className="text-green-400 font-bold mb-2 text-sm md:text-base">👇 PLAY NOW:</p>
+            <p className="text-green-400 font-bold mb-2 text-sm md:text-base">👇 START GAME:</p>
             <p className="text-sm md:text-base">Click below to start your journey back to the 80s!</p>
-            <Link href="/games" className="nes-btn is-primary mt-3">PLAY NOW</Link>
+            <Link href="/games" className="nes-btn is-primary mt-3">START GAME</Link>
             {isAdmin && (
              <Link href="/admin" className="nes-btn is-error">ADMIN PANEL</Link>
            )}

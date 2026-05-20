@@ -38,14 +38,14 @@ test.describe('LC-Games E2E', () => {
 
   test('User can view game details and emulator', async ({ page }) => {
     await page.goto('/games/hero-is-back-c64c128');
-    // Skip coin if it appears (it's global)
-    if (await page.getByText('INSERT COIN').isVisible()) {
-        await page.locator('.fixed.inset-0').click();
-    }
     
     // Check Game Info
     await expect(page.getByText('H.E.R.O. Is Back')).toBeVisible();
-    await expect(page.getByText('PLATFORM: C64')).toBeVisible();
+    await expect(page.getByText('PLATFORM', { exact: true })).toBeVisible();
+    await expect(page.getByText('C64', { exact: true })).toBeVisible();
+    
+    // Click PLAY GAME to mount the emulator iframe
+    await page.getByRole('button', { name: 'PLAY GAME' }).click();
     
     // Check Emulator Iframe
     const iframe = page.locator('iframe');

@@ -97,9 +97,9 @@ test.describe('Score Separation', () => {
   test('CurrentScoreCard should show score value and difficulty selector', async ({ page }) => {
     await page.goto(`/games/${TEST_GAME_SLUG}`);
     
-    await expect(page.getByText('SCORE')).toBeVisible();
+    await expect(page.getByText('SCORE', { exact: true })).toBeVisible();
     
-    await expect(page.getByText('0')).toBeVisible();
+    await expect(page.locator('.text-green-400').getByText('0', { exact: true })).toBeVisible();
   });
 });
 

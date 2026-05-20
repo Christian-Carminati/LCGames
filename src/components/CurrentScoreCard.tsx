@@ -144,13 +144,18 @@ export function CurrentScoreCard({
             {submitting ? 'SAVING...' : 'SAVE SCORE'}
           </button>
         ) : (
-          <button
-            type="button"
-            className="nes-btn is-primary w-full"
-            onClick={handleLoginAndSave}
-          >
-            LOGIN TO SAVE
-          </button>
+          <>
+            <button
+              type="button"
+              className="nes-btn is-primary w-full"
+              onClick={handleLoginAndSave}
+            >
+              SAVE SCORE
+            </button>
+            <p className="text-xs text-yellow-500 mt-2 animate-pulse text-center">
+              Score won&apos;t be saved without login
+            </p>
+          </>
         )}
       </div>
     </div>
