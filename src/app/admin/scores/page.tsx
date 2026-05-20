@@ -17,11 +17,21 @@ export default async function AdminScoresPage(props: {
       select: {
           slug: true,
           title: true,
-          difficultyConfig: true,
-          palNtscConfig: true
+          GameConfig: {
+              select: {
+                  difficultyConfig: true,
+                  palNtscConfig: true
+              }
+          }
       }
   });
-  const gameMap = new Map((games as any[]).map(g => [g.slug, g]));
+  const gamesMapped = games.map(g => ({
+      slug: g.slug,
+      title: g.title,
+      difficultyConfig: g.GameConfig?.difficultyConfig,
+      palNtscConfig: g.GameConfig?.palNtscConfig
+  }));
+  const gameMap = new Map(gamesMapped.map(g => [g.slug, g]));
 
   // Fetch all scores with user data
   const rawScores = await prisma.score.findMany({
@@ -50,10 +60,10 @@ export default async function AdminScoresPage(props: {
           gameSlug: s.gameSlug,
           gameTitle: gameInfo?.title || s.gameSlug,
           name: s.user?.name || 'Anonymous',
-          score: s.value,
+          score: Number(s.value),
           difficulty: s.difficulty,
           videoSystem,
-          date: new Date(s.createdAt).toLocaleDateString(),
+          date: new Date(s.createdAt).toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' }),
           createdAt: new Date(s.createdAt).getTime()
       };
   });

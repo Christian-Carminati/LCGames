@@ -4,15 +4,28 @@ import { requireAdminAuth } from '@/lib/admin-auth';
 import { GameSchema } from '@/lib/validations';
 import type { Prisma } from '@prisma/client';
 
+import crypto from 'crypto';
+
 export async function GET(request: NextRequest) {
   const authError = requireAdminAuth(request);
   if (authError) return authError;
 
   try {
     const games = await prisma.game.findMany({
+      include: {
+        GameConfig: true
+      },
       orderBy: { title: 'asc' }
     });
-    return NextResponse.json(games);
+
+    const mappedGames = games.map(game => ({
+      ...game,
+      scoreConfig: game.GameConfig?.scoreConfig,
+      difficultyConfig: game.GameConfig?.difficultyConfig,
+      palNtscConfig: game.GameConfig?.palNtscConfig
+    }));
+
+    return NextResponse.json(mappedGames);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch games' }, { status: 500 });
   }
@@ -55,14 +68,30 @@ export async function POST(request: NextRequest) {
         url: data.url || undefined,
         romPath: data.romPath,
         youtubeUrl: data.youtubeUrl || undefined,
-        scoreConfig: data.scoreConfig as Prisma.InputJsonValue | undefined,
-        difficultyConfig: data.difficultyConfig as Prisma.InputJsonValue | undefined,
-        palNtscConfig: data.palNtscConfig as Prisma.InputJsonValue | undefined,
-        published: data.published ?? true
+        published: data.published ?? true,
+        GameConfig: {
+          create: {
+            id: crypto.randomUUID(),
+            scoreConfig: data.scoreConfig as Prisma.InputJsonValue | undefined,
+            difficultyConfig: data.difficultyConfig as Prisma.InputJsonValue | undefined,
+            palNtscConfig: data.palNtscConfig as Prisma.InputJsonValue | undefined,
+            updatedAt: new Date()
+          }
+        }
+      },
+      include: {
+        GameConfig: true
       }
     });
 
-    return NextResponse.json({ success: true, game: newGame });
+    const mappedGame = {
+      ...newGame,
+      scoreConfig: newGame.GameConfig?.scoreConfig,
+      difficultyConfig: newGame.GameConfig?.difficultyConfig,
+      palNtscConfig: newGame.GameConfig?.palNtscConfig
+    };
+
+    return NextResponse.json({ success: true, game: mappedGame });
   } catch (error) {
     console.error("Failed to create game:", error);
     return NextResponse.json({ error: 'Failed to create game' }, { status: 500 });

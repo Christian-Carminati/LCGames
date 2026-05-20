@@ -3,6 +3,7 @@ import prisma from '@/lib/db';
 import { requireAdminAuth } from '@/lib/admin-auth';
 import { GameSchema } from '@/lib/validations';
 import type { Prisma } from '@prisma/client';
+import crypto from 'crypto';
 
 export async function GET(
   request: NextRequest,
@@ -16,14 +17,22 @@ export async function GET(
   
   try {
     const game = await prisma.game.findUnique({
-      where: { slug }
+      where: { slug },
+      include: { GameConfig: true }
     });
     
     if (!game) {
       return NextResponse.json({ error: 'Game not found' }, { status: 404 });
     }
     
-    return NextResponse.json(game);
+    const mappedGame = {
+      ...game,
+      scoreConfig: game.GameConfig?.scoreConfig,
+      difficultyConfig: game.GameConfig?.difficultyConfig,
+      palNtscConfig: game.GameConfig?.palNtscConfig
+    };
+    
+    return NextResponse.json(mappedGame);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch game' }, { status: 500 });
   }
@@ -65,14 +74,38 @@ export async function PUT(
         url: result.data.url || undefined,
         romPath: result.data.romPath,
         youtubeUrl: result.data.youtubeUrl || undefined,
-        scoreConfig: result.data.scoreConfig as Prisma.InputJsonValue | undefined,
-        difficultyConfig: result.data.difficultyConfig as Prisma.InputJsonValue | undefined,
-        palNtscConfig: result.data.palNtscConfig as Prisma.InputJsonValue | undefined,
-        published: result.data.published ?? true
+        published: result.data.published ?? true,
+        GameConfig: {
+          upsert: {
+            create: {
+              id: crypto.randomUUID(),
+              scoreConfig: result.data.scoreConfig as Prisma.InputJsonValue | undefined,
+              difficultyConfig: result.data.difficultyConfig as Prisma.InputJsonValue | undefined,
+              palNtscConfig: result.data.palNtscConfig as Prisma.InputJsonValue | undefined,
+              updatedAt: new Date()
+            },
+            update: {
+              scoreConfig: result.data.scoreConfig as Prisma.InputJsonValue | undefined,
+              difficultyConfig: result.data.difficultyConfig as Prisma.InputJsonValue | undefined,
+              palNtscConfig: result.data.palNtscConfig as Prisma.InputJsonValue | undefined,
+              updatedAt: new Date()
+            }
+          }
+        }
+      },
+      include: {
+        GameConfig: true
       }
     });
 
-    return NextResponse.json({ success: true, game: updated });
+    const mappedGame = {
+      ...updated,
+      scoreConfig: updated.GameConfig?.scoreConfig,
+      difficultyConfig: updated.GameConfig?.difficultyConfig,
+      palNtscConfig: updated.GameConfig?.palNtscConfig
+    };
+
+    return NextResponse.json({ success: true, game: mappedGame });
   } catch (error) {
      console.error("Update error:", error);
     return NextResponse.json({ error: 'Failed to update game' }, { status: 500 });

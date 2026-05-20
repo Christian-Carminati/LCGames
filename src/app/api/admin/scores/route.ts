@@ -54,7 +54,13 @@ export async function PATCH(request: NextRequest) {
             data: { difficulty }
         });
         
-        return NextResponse.json({ success: true, score: updated });
+        return NextResponse.json({
+            success: true,
+            score: {
+                ...updated,
+                value: Number(updated.value)
+            }
+        });
 
     } catch (e) {
         console.error("Failed to update score difficulty:", e);

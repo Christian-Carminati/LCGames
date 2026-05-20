@@ -59,8 +59,8 @@ export async function GET(request: Request) {
         const formattedScores: FormattedScore[] = scores.map((s) => ({
             userId: s.user?.email ?? '',
             name: s.user.name || "Anonymous",
-            score: s.value,
-            date: s.updatedAt.toLocaleDateString('it-IT'),
+            score: Number(s.value),
+            date: s.createdAt.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' }),
             userImage: s.user.image
         }));
 
@@ -150,8 +150,8 @@ export async function POST(request: Request) {
         const formattedScores: FormattedScore[] = newScores.map((s) => ({
             userId: s.user?.email ?? '',
             name: s.user.name || "Anonymous",
-            score: s.value,
-            date: s.updatedAt.toLocaleDateString('it-IT'),
+            score: Number(s.value),
+            date: s.createdAt.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' }),
             userImage: s.user.image
         }));
 

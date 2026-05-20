@@ -21,7 +21,8 @@ export default async function GameDetailPage(props: PageProps) {
   const isAdmin = adminToken ? verifyAdminToken(adminToken) : false;
   
   const game = await prisma.game.findUnique({
-      where: { slug }
+      where: { slug },
+      include: { GameConfig: true }
   });
 
   if (!game) {
@@ -40,8 +41,8 @@ export default async function GameDetailPage(props: PageProps) {
       endianness?: string;
   }
   
-  const scoreConfig = (game.scoreConfig && typeof game.scoreConfig === 'object') 
-      ? game.scoreConfig as unknown as ScoreConfig 
+  const scoreConfig = (game.GameConfig?.scoreConfig && typeof game.GameConfig.scoreConfig === 'object') 
+      ? game.GameConfig.scoreConfig as unknown as ScoreConfig 
       : undefined;
 
   interface PalNtscConfig {
@@ -50,8 +51,8 @@ export default async function GameDetailPage(props: PageProps) {
       numStandards?: number;
   }
 
-  const palNtscConfig = (game.palNtscConfig && typeof game.palNtscConfig === 'object')
-      ? game.palNtscConfig as unknown as PalNtscConfig
+  const palNtscConfig = (game.GameConfig?.palNtscConfig && typeof game.GameConfig.palNtscConfig === 'object')
+      ? game.GameConfig.palNtscConfig as unknown as PalNtscConfig
       : undefined;
 
   return (
@@ -62,7 +63,7 @@ export default async function GameDetailPage(props: PageProps) {
         </Link>
         {isAdmin && (
           <Link href="/admin/games" className="nes-btn is-warning">
-              <span className="text-xs">ADMIN PANEL</span>
+               <span className="text-xs">ADMIN PANEL</span>
           </Link>
         )}
       </div>
@@ -79,7 +80,7 @@ export default async function GameDetailPage(props: PageProps) {
         description={game.description || ''}
         isAdmin={isAdmin}
         youtubeUrl={game.youtubeUrl || undefined}
-        difficultyConfig={(game.difficultyConfig as { address: string } | null) || undefined}
+        difficultyConfig={(game.GameConfig?.difficultyConfig as { address: string } | null) || undefined}
         palNtscConfig={palNtscConfig}
         />
 

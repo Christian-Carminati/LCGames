@@ -7,7 +7,8 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
   const { slug } = params;
   
   const game = await prisma.game.findUnique({
-    where: { slug }
+    where: { slug },
+    include: { GameConfig: true }
   });
 
   if (!game) {
@@ -21,12 +22,12 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
       length: number;
   }
   
-  const scoreConfig = (game.scoreConfig && typeof game.scoreConfig === 'object') 
-      ? game.scoreConfig as unknown as ScoreConfig 
+  const scoreConfig = (game.GameConfig?.scoreConfig && typeof game.GameConfig.scoreConfig === 'object') 
+      ? game.GameConfig.scoreConfig as unknown as ScoreConfig 
       : undefined;
   
-  const difficultyConfigRaw = game.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number, levelNames?: string[] } | null;
-  const palNtscConfigRaw = game.palNtscConfig as { address?: string, baseOffset?: string, numStandards?: number } | null;
+  const difficultyConfigRaw = game.GameConfig?.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number, levelNames?: string[] } | null;
+  const palNtscConfigRaw = game.GameConfig?.palNtscConfig as { address?: string, baseOffset?: string, numStandards?: number } | null;
   const gameData = {
       title: game.title,
       platform: game.platform,
