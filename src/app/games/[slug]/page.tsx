@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
@@ -6,25 +7,10 @@ import Link from 'next/link';
 import { DonateButton } from '@/components/DonateButton';
 import { GameInterface } from '@/components/GameInterface';
 
-export const dynamicParams = true;
+export const dynamicParams = true; // Allow dynamic fallback
 
 interface PageProps {
     params: Promise<{ slug: string }>;
-}
-
-interface ScoreConfig {
-    address: string;
-    type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
-    length: number;
-    multiplier?: number;
-    baseOffset?: string;
-    endianness?: string;
-}
-
-interface PalNtscConfig {
-    address: string;
-    baseOffset?: string;
-    numStandards?: number;
 }
 
 export default async function GameDetailPage(props: PageProps) {
@@ -33,10 +19,10 @@ export default async function GameDetailPage(props: PageProps) {
   const cookieStore = await cookies();
   const adminToken = cookieStore.get('admin_token')?.value;
   const isAdmin = adminToken ? verifyAdminToken(adminToken) : false;
-
+  
   const game = await prisma.game.findUnique({
       where: { slug },
-      include: { gameConfig: true },
+      include: { GameConfig: true }
   });
 
   if (!game) {
@@ -44,16 +30,30 @@ export default async function GameDetailPage(props: PageProps) {
   }
 
   const romPath = game.romPath || null;
-
-  const scoreConfig = (game.gameConfig?.scoreConfig && typeof game.gameConfig.scoreConfig === 'object')
-      ? game.gameConfig.scoreConfig as unknown as ScoreConfig
+  
+  // Safe cast for scoreConfig since Prisma Json type is generic
+  interface ScoreConfig {
+      address: string;
+      type: 'string';
+      length: number;
+      multiplier?: number;
+      baseOffset?: string;
+      endianness?: string;
+  }
+  
+  const scoreConfig = (game.GameConfig?.scoreConfig && typeof game.GameConfig.scoreConfig === 'object') 
+      ? game.GameConfig.scoreConfig as unknown as ScoreConfig 
       : undefined;
 
-  const palNtscConfig = (game.gameConfig?.palNtscConfig && typeof game.gameConfig.palNtscConfig === 'object')
-      ? game.gameConfig.palNtscConfig as unknown as PalNtscConfig
-      : undefined;
+  interface PalNtscConfig {
+      address: string;
+      baseOffset?: string;
+      numStandards?: number;
+  }
 
-  const difficultyConfig = (game.gameConfig?.difficultyConfig as { address: string } | null) || undefined;
+  const palNtscConfig = (game.GameConfig?.palNtscConfig && typeof game.GameConfig.palNtscConfig === 'object')
+      ? game.GameConfig.palNtscConfig as unknown as PalNtscConfig
+      : undefined;
 
   return (
     <div className="container mx-auto pb-16 px-4">
@@ -63,12 +63,12 @@ export default async function GameDetailPage(props: PageProps) {
         </Link>
         {isAdmin && (
           <Link href="/admin/games" className="nes-btn is-warning">
-              <span className="text-xs">ADMIN PANEL</span>
+               <span className="text-xs">ADMIN PANEL</span>
           </Link>
         )}
       </div>
 
-      <GameInterface
+      <GameInterface 
         gameSlug={slug}
         gameTitle={game.title}
         romPath={romPath}
@@ -80,7 +80,7 @@ export default async function GameDetailPage(props: PageProps) {
         description={game.description || ''}
         isAdmin={isAdmin}
         youtubeUrl={game.youtubeUrl || undefined}
-        difficultyConfig={difficultyConfig}
+        difficultyConfig={(game.GameConfig?.difficultyConfig as { address: string } | null) || undefined}
         palNtscConfig={palNtscConfig}
         />
 
@@ -100,3 +100,4 @@ export default async function GameDetailPage(props: PageProps) {
     </div>
   );
 }
+

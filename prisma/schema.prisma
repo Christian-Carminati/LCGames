@@ -13,12 +13,12 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  deletedAt     DateTime?
-  accounts      Account[]
-  sessions      Session[]
-  scores        Score[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  accounts      Account[]
+  scores        Score[]
+  sessions      Session[]
 }
 
 model Account {
@@ -27,15 +27,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -57,56 +56,44 @@ model VerificationToken {
 }
 
 model Game {
-  id            String   @id @default(cuid())
-  slug          String   @unique
-  title         String
-  description   String?
-  platform      String
-  genre         String?
-  imageUrl      String?
-  url           String?
-  romPath       String?
-  youtubeUrl    String?
-  published     Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  scores            Score[]
-  gameConfig        GameConfig?
-}
-
-model GameConfig {
-  id               String   @id @default(cuid())
-  gameId           String   @unique
-  game             Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  scoreConfig      Json?
-  difficultyConfig Json?
-  palNtscConfig    Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  description String?
+  platform    String
+  genre       String?
+  imageUrl    String?
+  url         String?
+  romPath     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  youtubeUrl  String?
+  published   Boolean     @default(true)
+  GameConfig  GameConfig?
+  scores      Score[]
 }
 
 model Score {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   value      BigInt
-  difficulty Int      @default(0)
   userId     String
   gameSlug   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  difficulty Int       @default(0)
   deletedAt  DateTime?
   scoreHash  String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  game Game @relation(fields: [gameSlug], references: [slug])
+  game       Game      @relation(fields: [gameSlug], references: [slug])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, gameSlug, difficulty])
+  @@index([createdAt])
   @@index([gameSlug, difficulty, value])
   @@index([userId])
-  @@index([createdAt])
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
+  id         String   @id
   action     String
   entityType String
   entityId   String
@@ -115,6 +102,17 @@ model AuditLog {
   newValue   Json?
   createdAt  DateTime @default(now())
 
-  @@index([entityType, entityId])
   @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+model GameConfig {
+  id               String   @id
+  gameId           String   @unique
+  scoreConfig      Json?
+  difficultyConfig Json?
+  palNtscConfig    Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime
+  Game             Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
 }

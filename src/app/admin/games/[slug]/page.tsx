@@ -5,29 +5,29 @@ import { notFound } from 'next/navigation';
 export default async function EditGamePage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const { slug } = params;
-
+  
   const game = await prisma.game.findUnique({
     where: { slug },
-    include: { gameConfig: true },
+    include: { GameConfig: true }
   });
 
   if (!game) {
     notFound();
   }
-
+  
+  // Safe cast for scoreConfig
   interface ScoreConfig {
       address: string;
-      type: 'byte' | 'int' | 'bcd' | 'string' | 'digits';
+      type: string;
       length: number;
   }
-
-  const scoreConfig = (game.gameConfig?.scoreConfig && typeof game.gameConfig.scoreConfig === 'object')
-      ? game.gameConfig.scoreConfig as unknown as ScoreConfig
+  
+  const scoreConfig = (game.GameConfig?.scoreConfig && typeof game.GameConfig.scoreConfig === 'object') 
+      ? game.GameConfig.scoreConfig as unknown as ScoreConfig 
       : undefined;
-
-  const difficultyConfigRaw = game.gameConfig?.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number, levelNames?: string[] } | null;
-  const palNtscConfigRaw = game.gameConfig?.palNtscConfig as { address?: string, baseOffset?: string, numStandards?: number } | null;
-
+  
+  const difficultyConfigRaw = game.GameConfig?.difficultyConfig as { address?: string, baseOffset?: string, numLevels?: number, levelNames?: string[] } | null;
+  const palNtscConfigRaw = game.GameConfig?.palNtscConfig as { address?: string, baseOffset?: string, numStandards?: number } | null;
   const gameData = {
       title: game.title,
       platform: game.platform,
@@ -50,6 +50,11 @@ export default async function EditGamePage(props: { params: Promise<{ slug: stri
       },
       scoreConfig: scoreConfig || { address: '', type: 'byte', length: 1, multiplier: 1, baseOffset: '', endianness: 'big' }
   };
+
+  // Actually, let's fix the assignment to avoid 'as any' in the object literal if possible.
+  // gameData is being inferred. 
+  // I'll just use the variable `scoreConfig` which is typed correctly above.
+
 
   return (
     <div>
