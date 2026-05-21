@@ -13,14 +13,14 @@ export const DifficultyConfigSchema = z.object({
   address: z.string().regex(/^0x[0-9a-fA-F]+$/),
   baseOffset: z.string().regex(/^0x[0-9a-fA-F]+$/).optional(),
   numLevels: z.number().int().min(1).max(20).optional(),
-  levelNames: z.string().optional(),
-}).optional();
+  levelNames: z.union([z.string(), z.array(z.string())]).optional(),
+}).nullish();
 
 export const PalNtscConfigSchema = z.object({
   address: z.string().regex(/^0x[0-9a-fA-F]+$/),
   baseOffset: z.string().regex(/^0x[0-9a-fA-F]+$/).optional(),
   numStandards: z.number().int().min(1).max(2).optional(),
-}).optional();
+}).nullish();
 
 export const GameSchema = z.object({
   title: z.string().min(1).max(100),

@@ -70,21 +70,21 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
       type: 'byte',
       length: 1,
       multiplier: 1,
-      baseOffset: '',
+      baseOffset: '0x0000',
       endianness: 'big'
     },
     ...initialData,
     difficultyConfig: {
       address: initialData.difficultyConfig?.address || '',
-      baseOffset: initialData.difficultyConfig?.baseOffset || '',
+      baseOffset: initialData.difficultyConfig?.baseOffset || '0x0000',
       numLevels: initialData.difficultyConfig?.numLevels || 1,
-      levelNames: Array.isArray(initialData.difficultyConfig?.levelNames) 
-        ? initialData.difficultyConfig.levelNames.join(', ') 
+      levelNames: Array.isArray(initialData.difficultyConfig?.levelNames)
+        ? initialData.difficultyConfig.levelNames.join(', ')
         : (initialData.difficultyConfig?.levelNames || '')
     },
     palNtscConfig: {
       address: initialData.palNtscConfig?.address || '',
-      baseOffset: initialData.palNtscConfig?.baseOffset || '',
+      baseOffset: initialData.palNtscConfig?.baseOffset || '0x0000',
       numStandards: initialData.palNtscConfig?.numStandards || 2
     }
   });
@@ -141,7 +141,8 @@ export default function GameForm({ initialData = {}, isEdit = false }: GameFormP
 
       const submitData = {
         ...formData,
-        difficultyConfig: formData.difficultyConfig?.address 
+        scoreConfig: formData.scoreConfig?.address ? formData.scoreConfig : null,
+        difficultyConfig: formData.difficultyConfig?.address
           ? {
               ...formData.difficultyConfig,
               levelNames: formData.difficultyConfig.levelNames
