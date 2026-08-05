@@ -1,5 +1,7 @@
 'use client';
 
+import { DONATIONS_ENABLED } from '@/lib/features';
+
 interface DonationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -7,6 +9,7 @@ interface DonationModalProps {
 }
 
 export function DonationModal({ isOpen, onClose, username }: DonationModalProps) {
+  if (!DONATIONS_ENABLED) return null;
   if (!isOpen) return null;
 
   const kofiUrl = `https://ko-fi.com/${username}`;

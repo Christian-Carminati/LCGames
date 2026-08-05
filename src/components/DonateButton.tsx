@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { DONATIONS_ENABLED } from '@/lib/features';
 
 interface DonateButtonProps {
   label?: string;
@@ -11,6 +12,8 @@ export function DonateButton({
     label = "WORK IN PROGRESS",
     className = ""
 }: DonateButtonProps) {
+  if (!DONATIONS_ENABLED) return null;
+
   return (
     <a
       href="https://lowcarb.itch.io/"
