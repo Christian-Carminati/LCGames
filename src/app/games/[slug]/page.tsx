@@ -5,6 +5,7 @@ import prisma from '@/lib/db';
 import { verifyAdminToken } from '@/lib/admin-auth';
 import Link from 'next/link';
 import { DonateButton } from '@/components/DonateButton';
+import { DONATIONS_ENABLED } from '@/lib/features';
 import { GameInterface } from '@/components/GameInterface';
 
 export const dynamicParams = true; // Allow dynamic fallback
@@ -84,7 +85,8 @@ export default async function GameDetailPage(props: PageProps) {
         palNtscConfig={palNtscConfig}
         />
 
-      <div className="mt-12 border-t-4 border-white/10 pt-8">
+      {DONATIONS_ENABLED && (
+        <div className="mt-12 border-t-4 border-white/10 pt-8">
           <div className="nes-container is-rounded is-dark">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="text-center md:text-left">
@@ -96,7 +98,8 @@ export default async function GameDetailPage(props: PageProps) {
                   </div>
               </div>
           </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

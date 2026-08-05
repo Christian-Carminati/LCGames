@@ -11,6 +11,7 @@ const pressStart2P = Press_Start_2P({
 
 import { InsertCoin } from "@/components/InsertCoin";
 import { DonateButton } from "@/components/DonateButton";
+import { DONATIONS_ENABLED } from "@/lib/features";
 import { Providers } from "./providers";
 import LoginButton from "@/components/LoginButton";
 
@@ -46,7 +47,7 @@ export default function RootLayout({
             </main>
             <footer className="p-8 text-center opacity-80">
                 <p className="text-xs mb-4 text-c64-text">LC-GAMES ARCHIVE</p>
-                <DonateButton />
+                {DONATIONS_ENABLED && <DonateButton />}
             </footer>
           </NotificationProvider>
         </Providers>
